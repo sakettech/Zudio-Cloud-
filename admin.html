@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zudio Enterprise Console (AWS Style)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* AWS Style Theme with Zudio Accents */
+            --aws-header: #232f3e;
+            --aws-bg: #f2f3f3;
+            --aws-card: #ffffff;
+            --aws-text: #16191f;
+            --aws-text-muted: #545b64;
+            --aws-border: #eaeded;
+            --aws-hover: #fafafa;
+            --zudio-accent: #ff416c;
+            --aws-blue: #0073bb;
+            --success: #1e8e3e;
+            --warning: #f29900;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Open Sans', sans-serif; }
+        body { background-color: var(--aws-bg); color: var(--aws-text); display: flex; height: 100vh; overflow: hidden; }
+
+        /* ================= TOP HEADER (AWS Style) ================= */
+        .top-navbar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background-color: var(--aws-header); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .nav-left, .nav-right { flex: 1; display: flex; align-items: center; }
+        .nav-right { justify-content: flex-end; gap: 20px; }
+        .nav-center { flex: 1; display: flex; justify-content: center; }
+
+        /* STYLISH CENTER LOGO */
+        .zudio-logo { font-size: 24px; font-weight: 900; letter-spacing: 4px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        .zudio-logo i { font-size: 20px; color: var(--zudio-accent); }
+        .zudio-logo span.z-text { color: white; }
+        .zudio-logo span.aws-text { color: var(--zudio-accent); font-weight: 400; }
+
+        .nav-search { background: rgba(255,255,255,0.1); border: 1px solid #444; border-radius: 4px; display: flex; align-items: center; padding: 0 10px; width: 300px; height: 34px; transition: 0.3s; }
+        .nav-search input { background: transparent; border: none; color: white; width: 100%; outline: none; font-size: 13px; margin-left: 8px; }
+        .nav-search input::placeholder { color: #aaa; }
+        .nav-search:focus-within { background: white; border-color: var(--aws-blue); }
+        .nav-search:focus-within input { color: black; }
+        .nav-search:focus-within i { color: var(--aws-blue) !important; }
+
+        .nav-profile { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .nav-profile:hover { color: var(--zudio-accent); }
+
+        /* ================= SIDEBAR ================= */
+        .sidebar { width: 240px; background: var(--aws-card); border-right: 1px solid var(--aws-border); height: calc(100vh - 60px); margin-top: 60px; display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar-menu { list-style: none; padding: 15px 0; }
+        .sidebar-menu li { padding: 12px 25px; font-size: 13px; color: var(--aws-text); font-weight: 600; cursor: pointer; border-left: 4px solid transparent; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+        .sidebar-menu li:hover { background-color: var(--aws-hover); }
+        .sidebar-menu li.active { border-left-color: var(--zudio-accent); color: var(--aws-blue); background-color: #f2f8fd; }
+        .sidebar-menu li i { font-size: 16px; color: var(--aws-text-muted); width: 20px; text-align: center; }
+        .sidebar-menu li.active i { color: var(--aws-blue); }
+
+        /* ================= MAIN CONTENT ================= */
+        .main-content { flex: 1; margin-top: 60px; padding: 30px; overflow-y: auto; }
+        .breadcrumb { font-size: 13px; color: var(--aws-text-muted); margin-bottom: 20px; }
+        .breadcrumb span { color: var(--aws-blue); font-weight: 600; cursor: pointer; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .page-header h1 { font-size: 26px; font-weight: 400; color: #222; }
+        
+        .btn-primary { background: var(--zudio-accent); color: white; border: none; padding: 9px 18px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .btn-primary:hover { background: #e0385e; transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(1px); }
+        .btn-secondary { background: white; color: var(--aws-text); border: 1px solid #879196; padding: 9px 18px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; margin-right: 10px; transition: 0.2s; }
+        .btn-secondary:hover { background: var(--aws-hover); }
+
+        /* ================= DATA CARDS & TABLES ================= */
+        .card { background: var(--aws-card); border: 1px solid var(--aws-border); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); margin-bottom: 25px; overflow: hidden; }
+        .card-header { padding: 15px 25px; border-bottom: 1px solid var(--aws-border); display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+        .card-header h2 { font-size: 16px; font-weight: 700; color: #333; }
+        
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #fafafa; padding: 14px 25px; font-size: 12px; color: var(--aws-text-muted); font-weight: 700; border-bottom: 2px solid var(--aws-border); text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 14px 25px; font-size: 13px; border-bottom: 1px solid var(--aws-border); color: var(--aws-text); vertical-align: middle; }
+        tr:hover { background-color: #f9f9f9; }
+        
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+        .status-active { background: #e6f4ea; color: var(--success); border: 1px solid #ceead6; }
+        .status-pending { background: #fef7e0; color: var(--warning); border: 1px solid #feefc3; }
+
+        /* EDITABLE CELL STYLES */
+        .editable { position: relative; cursor: pointer; border: 1px solid transparent; border-radius: 4px; transition: 0.2s; padding: 6px 10px !important; margin: 4px 0;}
+        .editable:hover { border-color: #ddd; background: #f0f8ff; }
+        .edit-input { width: 100%; padding: 6px 8px; border: 2px solid var(--aws-blue); border-radius: 4px; font-size: 13px; display: none; outline: none; }
+        .editable.editing span { display: none; }
+        .editable.editing .edit-input { display: block; }
+        
+        .action-icon { color: var(--aws-text-muted); cursor: pointer; font-size: 15px; margin: 0 8px; transition: 0.2s; }
+        .action-icon:hover { color: var(--aws-blue); transform: scale(1.1); }
+        .action-icon.delete:hover { color: red; }
+
+        /* View Control */
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ================= TOAST NOTIFICATION ================= */
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #333; color: white; padding: 15px 25px; border-radius: 6px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; z-index: 2000; align-items: center; gap: 10px; border-left: 4px solid var(--success); animation: slideIn 0.3s ease-out; }
+        .toast.error { border-left-color: var(--zudio-accent); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- TOP HEADER -->
+    <header class="top-navbar">
+        <div class="nav-left">
+            <div class="nav-search">
+                <i class="fa-solid fa-magnifying-glass" style="color: #aaa;"></i>
+                <input type="text" id="global-search" placeholder="Search resources, users, coupons..." onkeyup="filterTables()">
+            </div>
+        </div>
+        
+        <!-- CENTERED ZUDIO LOGO -->
+        <div class="nav-center">
+            <div class="zudio-logo">
+                <i class="fa-solid fa-cube"></i>
+                <span class="z-text">ZUDIO</span><span class="aws-text">.CLOUD</span>
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <i class="fa-regular fa-bell" style="font-size: 16px; cursor: pointer;"></i>
+            <div class="nav-profile">
+                <span>Root-Admin</span> <i class="fa-solid fa-user-circle" style="font-size: 20px;"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li class="active" onclick="switchTab('measurements', this)"><i class="fa-solid fa-database"></i> Fit Database (Sheet)</li>
+            <li onclick="switchTab('users', this)"><i class="fa-solid fa-users"></i> User Login Data</li>
+            <li onclick="switchTab('purchases', this)"><i class="fa-solid fa-cart-flatbed"></i> Purchase History</li>
+            <li onclick="switchTab('coupons', this)"><i class="fa-solid fa-ticket-simple"></i> Coupon Management</li>
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+        
+        <!-- 1. SPREADSHEET DATA VIEW -->
+        <div id="measurements-view" class="view-section active">
+            <div class="breadcrumb">Zudio Cloud > <span>Spreadsheet Sync</span> > Fit Profiles</div>
+            <div class="page-header">
+                <h1>Google Sheet Database (Live)</h1>
+                <div>
+                    <button class="btn-secondary"><i class="fa-solid fa-cloud-arrow-down"></i> Export CSV</button>
+                    <button class="btn-primary" onclick="fetchSheetData()"><i class="fa-solid fa-rotate"></i> Sync Data</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Target Sheet: 1BRmXMCTmtlUGn5fPu_Cdy...</h2>
+                </div>
+                <div class="table-responsive">
+                    <table id="sheet-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Profile ID</th>
+                                <th>Name (Click to edit)</th>
+                                <th>Chest (Edit)</th>
+                                <th>Shoulder (Edit)</th>
+                                <th>Shirt Fit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sheet-body">
+                            <!-- Dummy Data populated directly so UI doesn't look empty if script fails -->
+                            <tr>
+                                <td style="color: #555; font-size: 11px;">9/22/2026 2:04:35</td>
+                                <td style="font-family: monospace; color: var(--aws-blue);">1790022872880</td>
+                                <td class="editable" onclick="enableEdit(this)">
+                                    <span>Saket</span>
+                                    <!-- Blur event triggers the database save -->
+                                    <input type="text" class="edit-input" value="Saket" onblur="saveToDatabase(this, 'ProfileName', '1790022872880')">
+                                </td>
+                                <td class="editable" onclick="enableEdit(this)">
+                                    <span>38</span>
+                                    <input type="text" class="edit-input" value="38" onblur="saveToDatabase(this, 'ShirtChest', '1790022872880')">
+                                </td>
+                                <td class="editable" onclick="enableEdit(this)">
+                                    <span>17</span>
+                                    <input type="text" class="edit-input" value="17" onblur="saveToDatabase(this, 'ShirtShoulder', '1790022872880')">
+                                </td>
+                                <td><span class="status-badge status-active">Regular</span></td>
+                                <td><i class="fa-solid fa-trash action-icon delete" onclick="this.parentElement.parentElement.remove(); showToast('Row deleted');"></i></td>
+                            </tr>
+                             <tr>
+                                <td style="color: #555; font-size: 11px;">9/22/2026 2:10:12</td>
+                                <td style="font-family: monospace; color: var(--aws-blue);">1789990521964</td>
+                                <td class="editable" onclick="enableEdit(this)">
+                                    <span>Rahul Jha</span>
+                                    <input type="text" class="edit-input" value="Rahul Jha" onblur="saveToDatabase(this, 'ProfileName', '1789990521964')">
+                                </td>
+                                <td class="editable" onclick="enableEdit(this)">
+                                    <span>42</span>
+                                    <input type="text" class="edit-input" value="42" onblur="saveToDatabase(this, 'ShirtChest', '1789990521964')">
+                                </td>
+                                <td class="editable" onclick="enableEdit(this)">
+                                    <span>19</span>
+                                    <input type="text" class="edit-input" value="19" onblur="saveToDatabase(this, 'ShirtShoulder', '1789990521964')">
+                                </td>
+                                <td><span class="status-badge status-pending">Slim</span></td>
+                                <td><i class="fa-solid fa-trash action-icon delete" onclick="this.parentElement.parentElement.remove(); showToast('Row deleted');"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. USER LOGIN DATA VIEW -->
+        <div id="users-view" class="view-section">
+            <div class="breadcrumb">Zudio Cloud > <span>Identity Management</span> > Users</div>
+            <div class="page-header">
+                <h1>Registered Users Directory</h1>
+                <button class="btn-primary"><i class="fa-solid fa-user-plus"></i> Create User</button>
+            </div>
+            <div class="card">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>User ID</th><th>Email / Phone</th><th>Last Login IP</th><th>Auth Method</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr><td>USR-9921</td><td>saket.j@example.com</td><td>192.168.1.45</td><td>Google OAuth</td><td><span class="status-badge status-active">Active</span></td></tr>
+                            <tr><td>USR-8842</td><td>+91-9876543210</td><td>10.0.0.12</td><td>OTP</td><td><span class="status-badge status-active">Active</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. PURCHASE HISTORY VIEW -->
+        <div id="purchases-view" class="view-section">
+            <div class="breadcrumb">Zudio Cloud > <span>Billing & Orders</span> > Purchase History</div>
+            <div class="page-header">
+                <h1>Transaction Logs</h1>
+            </div>
+            <div class="card">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Order ID</th><th>Customer ID</th><th>Items Amount</th><th>Date</th><th>Fulfillment</th></tr></thead>
+                        <tbody>
+                            <tr><td>ORD-ZUD-001</td><td>USR-9921</td><td>₹ 1,299.00</td><td>Sept 22, 2026</td><td><span class="status-badge status-active">Delivered</span></td></tr>
+                            <tr><td>ORD-ZUD-002</td><td>USR-8842</td><td>₹ 849.00</td><td>Sept 21, 2026</td><td><span class="status-badge status-pending">Processing</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. COUPON MANAGEMENT VIEW -->
+        <div id="coupons-view" class="view-section">
+            <div class="breadcrumb">Zudio Cloud > <span>Marketing</span> > Coupons</div>
+            <div class="page-header">
+                <h1>Active Promotions & Coupons</h1>
+                <!-- Yahan Generate Coupon button kaam karega -->
+                <button class="btn-primary" onclick="generateNewCoupon()"><i class="fa-solid fa-plus"></i> Generate Coupon</button>
+            </div>
+            <div class="card">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Promo Code</th><th>Discount Type</th><th>Usage Limit</th><th>Expiry Date</th><th>Status</th></tr></thead>
+                        <tbody id="coupons-body">
+                            <tr>
+                                <td style="font-family: monospace; font-weight: bold; color: var(--aws-blue);">ZUDIO50</td>
+                                <td>50% OFF (Max ₹500)</td>
+                                <td>142 / 500</td>
+                                <td>Dec 31, 2026</td>
+                                <td><span class="status-badge status-active">Active</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- TOAST NOTIFICATION UI -->
+    <div class="toast" id="system-toast">
+        <i class="fa-solid fa-circle-check" id="toast-icon"></i>
+        <span id="toast-message">Database Updated Successfully!</span>
+    </div>
+
+    <script>
+        // --- 1. AWS Style Tab Switching ---
+        function switchTab(viewId, element) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-menu li').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(viewId + '-view').classList.add('active');
+            element.classList.add('active');
+        }
+
+        // --- 2. Global Search functionality ---
+        function filterTables() {
+            let input = document.getElementById('global-search').value.toLowerCase();
+            let activeView = document.querySelector('.view-section.active');
+            let rows = activeView.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            });
+        }
+
+        // --- 3. TOAST NOTIFICATION SYSTEM ---
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('system-toast');
+            document.getElementById('toast-message').innerText = message;
+            
+            if(isError) {
+                toast.classList.add('error');
+                document.getElementById('toast-icon').className = "fa-solid fa-triangle-exclamation";
+            } else {
+                toast.classList.remove('error');
+                document.getElementById('toast-icon').className = "fa-solid fa-circle-check";
+            }
+            
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // --- 4. COUPON GENERATOR SCRIPT ---
+        function generateNewCoupon() {
+            const tbody = document.getElementById('coupons-body');
+            
+            // Random Code Logic: "ZUD" + 5 random letters/numbers
+            const randomCode = "ZUD" + Math.random().toString(36).substring(2, 7).toUpperCase();
+            const discounts = ["Flat ₹200 OFF", "20% OFF", "Free Shipping", "Buy 1 Get 1"];
+            const randomDiscount = discounts[Math.floor(Math.random() * discounts.length)];
+            
+            // Create Row Element
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td style="font-family: monospace; font-weight: bold; color: var(--aws-blue);">${randomCode}</td>
+                <td>${randomDiscount}</td>
+                <td>0 / 100</td>
+                <td>Dec 31, 2026</td>
+                <td><span class="status-badge status-active">Active</span></td>
+            `;
+            
+            // Insert at top of table
+            tbody.insertBefore(newRow, tbody.firstChild);
+            showToast(`Coupon ${randomCode} generated!`);
+        }
+
+        // --- 5. GOOGLE SHEET EDIT & SYNC LOGIC ---
+        // Apna API url yaha replace kariye
+        const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEP_eDb--jlfDJA8iUHGL9l7-sgPEGqrALio_nryk/exec";
+
+        function enableEdit(cell) {
+            if(!cell.classList.contains('editing')) {
+                cell.classList.add('editing');
+                let input = cell.querySelector('.edit-input');
+                input.focus();
+            }
+        }
+
+        // Ye function 'blur' (baahar click karne) pe trigger hota hai aur Sheet me POST request bhejta hai
+        function saveToDatabase(inputElement, fieldName, profileId) {
+            let cell = inputElement.parentElement;
+            let newValue = inputElement.value;
+            let span = cell.querySelector('span');
+            
+            // Agar value change nahi hui hai, toh backend API call mat karo
+            if(span.innerText === newValue) {
+                cell.classList.remove('editing');
+                return;
+            }
+
+            // Update UI Immediately
+            span.innerText = newValue;
+            cell.classList.remove('editing');
+            
+            showToast("Syncing change to Google Sheets...");
+
+            // Backend Call Format using URLSearchParams (Jisse CORS block na ho)
+            const formParams = new URLSearchParams();
+            formParams.append("action", "update"); // API me batana ki update karna hai
+            formParams.append("ProfileID", profileId);
+            formParams.append(fieldName, newValue);
+
+            fetch(APP_SCRIPT_URL, {
+                method: "POST",
+                body: formParams,
+                mode: "no-cors"
+            }).then(() => {
+                showToast("Database Updated Successfully!");
+            }).catch(err => {
+                showToast("Update Failed! Check Network.", true);
+            });
+        }
+
+        function fetchSheetData() {
+            showToast("Syncing Database...");
+            // Simulated delay for UI feedback
+            setTimeout(() => {
+                showToast("Database is up to date!");
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

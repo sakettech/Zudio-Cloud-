@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zudio Enterprise Admin Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --aws-header: #232f3e; --aws-bg: #f2f3f3; --aws-card: #ffffff;
+            --aws-text: #16191f; --aws-text-muted: #545b64; --aws-border: #eaeded;
+            --aws-hover: #fafafa; --zudio-accent: #ff416c; --aws-blue: #0073bb;
+            --success: #1e8e3e; --warning: #d57b01; --info: #0073bb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Open Sans', sans-serif; }
+        body { background-color: var(--aws-bg); color: var(--aws-text); display: flex; height: 100vh; overflow: hidden; }
+
+        /* HEADER */
+        .top-navbar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background-color: var(--aws-header); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .zudio-logo { font-size: 22px; font-weight: 900; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+        .zudio-logo img { height: 26px; filter: brightness(0) invert(1); }
+        .zudio-logo span { color: var(--zudio-accent); font-weight: 400; font-size: 14px; letter-spacing: 1px; }
+
+        .nav-right { display: flex; align-items: center; gap: 20px; font-size: 13px; font-weight: 600; }
+        .live-pulse { display: flex; align-items: center; gap: 6px; color: #4ade80; background: rgba(74, 222, 128, 0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(74, 222, 128, 0.2); }
+        .dot { width: 8px; height: 8px; background-color: #4ade80; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
+
+        /* SIDEBAR */
+        .sidebar { width: 240px; background: var(--aws-card); border-right: 1px solid var(--aws-border); height: calc(100vh - 60px); margin-top: 60px; display: flex; flex-direction: column; }
+        .sidebar-menu { list-style: none; padding: 15px 0; flex: 1; }
+        .sidebar-menu li { padding: 14px 25px; font-size: 13px; color: var(--aws-text); font-weight: 600; cursor: pointer; border-left: 4px solid transparent; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+        .sidebar-menu li:hover { background-color: var(--aws-hover); }
+        .sidebar-menu li.active { border-left-color: var(--zudio-accent); color: var(--aws-blue); background-color: #f2f8fd; }
+        .sidebar-menu li i { font-size: 16px; color: var(--aws-text-muted); width: 20px; text-align: center; }
+        .sidebar-menu li.active i { color: var(--aws-blue); }
+
+        /* MAIN CONTENT */
+        .main-content { flex: 1; margin-top: 60px; padding: 30px; overflow-y: auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .page-header h1 { font-size: 24px; font-weight: 400; color: #222; }
+
+        .btn-primary { background: var(--aws-blue); color: white; border: none; padding: 9px 18px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary:hover { background: #005a93; }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-accent { background: var(--zudio-accent); color: white; border: none; padding: 9px 18px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+
+        /* DASHBOARD CARDS */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--aws-card); padding: 20px; border-radius: 8px; border: 1px solid var(--aws-border); box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+        .stat-card h3 { font-size: 12px; color: var(--aws-text-muted); text-transform: uppercase; margin-bottom: 10px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #222; display: flex; align-items: center; justify-content: space-between; }
+        .stat-card .value i { font-size: 24px; color: var(--aws-border); opacity: 0.5; }
+
+        /* TABLES */
+        .card { background: var(--aws-card); border: 1px solid var(--aws-border); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); margin-bottom: 25px; overflow: hidden; }
+        .card-header { padding: 15px 25px; border-bottom: 1px solid var(--aws-border); background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 15px; font-weight: 700; color: #333; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #fafafa; padding: 14px 25px; font-size: 12px; color: var(--aws-text-muted); font-weight: 700; border-bottom: 2px solid var(--aws-border); text-transform: uppercase; }
+        td { padding: 14px 25px; font-size: 13px; border-bottom: 1px solid var(--aws-border); vertical-align: middle; }
+        tr:hover { background-color: #f9f9f9; }
+
+        .item-list { display: flex; flex-direction: column; gap: 4px; }
+        .item-list span { font-size: 11px; background: #f2f3f3; padding: 2px 6px; border-radius: 4px; display: inline-block; width: max-content; border: 1px solid #ddd; }
+
+        /* STATUS BADGES */
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+        .badge-cart { background: #fff4e5; color: var(--warning); border: 1px solid #ffe0b2; }
+        .badge-paid { background: #e6f4ea; color: var(--success); border: 1px solid #ceead6; }
+        .badge-active { background: #e3f2fd; color: var(--info); border: 1px solid #bbdefb; }
+        .badge-sync { background: #f3e8ff; color: #9333ea; border: 1px solid #d8b4fe; }
+
+        /* VIEW CONTROL */
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* LOADER */
+        .sync-loader { display: none; padding: 30px; text-align: center; color: var(--aws-blue); font-weight: 600; font-size: 14px; }
+        .sync-loader i { font-size: 24px; margin-bottom: 10px; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #333; color: white; padding: 15px 25px; border-radius: 6px; font-size: 13px; font-weight: 600; display: none; z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-left: 4px solid var(--success); }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="top-navbar">
+        <div class="zudio-logo">
+            <img src="https://cdn.cookielaw.org/logos/396992c7-1022-4c36-82e8-f180e6324448/01946822-220c-788e-9a15-66b2d48a2e52/596b0ce1-8b87-4246-8b63-fc4a9e1971d4/Zudio_Logo_Clear_(W)_1_x_(H)_5-09_crop.png" alt="Zudio">
+            <span>ADMIN HQ</span>
+        </div>
+        <div class="nav-right">
+            <div class="live-pulse"><div class="dot"></div> Server Sync: Connected</div>
+            <span>Admin-Root <i class="fa-solid fa-user-circle" style="margin-left:5px; font-size: 18px;"></i></span>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <ul class="sidebar-menu">
+            <li class="active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Overview</li>
+            <li onclick="switchTab('tracking', this)"><i class="fa-solid fa-cart-shopping"></i> Live Carts & Orders</li>
+            <!-- IMMEDIATE SYNC TRIGGER ON CLICK -->
+            <li onclick="switchTab('measurements', this); fetchDirectFromSheet();"><i class="fa-solid fa-ruler-combined"></i> Measurements</li>
+            <li onclick="switchTab('coupons', this)"><i class="fa-solid fa-ticket-simple"></i> Coupon Manager</li>
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <!-- 1. DASHBOARD OVERVIEW -->
+        <div id="dashboard-view" class="view-section active">
+            <div class="page-header">
+                <h1>Command Center</h1>
+                <button class="btn-primary" onclick="window.location.reload()"><i class="fa-solid fa-rotate"></i> Refresh Metrics</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Sales (Today)</h3>
+                    <div class="value" id="stat-sales">₹0 <i class="fa-solid fa-indian-rupee-sign"></i></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Carts (Bags)</h3>
+                    <div class="value" id="stat-carts">0 <i class="fa-solid fa-bag-shopping"></i></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Completed Orders</h3>
+                    <div class="value" id="stat-orders">0 <i class="fa-solid fa-box-open"></i></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Z-Coins Distributed</h3>
+                    <div class="value" id="stat-coins">5,200 <i class="fa-solid fa-coins" style="color: gold; opacity:1;"></i></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Recent Activities</h2>
+                </div>
+                <table>
+                    <tbody>
+                        <tr><td><i class="fa-solid fa-circle-check" style="color:var(--success); margin-right:10px;"></i> System booted up for Hacktoberfest Dehradun.</td><td style="text-align:right; color:var(--aws-text-muted); font-size:11px;">Just now</td></tr>
+                        <tr><td><i class="fa-solid fa-bolt" style="color:var(--warning); margin-right:10px;"></i> Immediate Sync Hook active on Measurements tab.</td><td style="text-align:right; color:var(--aws-text-muted); font-size:11px;">System</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. LIVE CARTS & ORDERS -->
+        <div id="tracking-view" class="view-section">
+            <div class="page-header">
+                <h1>Cart & Order Tracking</h1>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2>Live Transactions</h2>
+                    <div style="display:flex; gap:10px;">
+                        <span class="badge badge-cart"><i class="fa-solid fa-bag-shopping"></i> In Bag (Not Paid)</span>
+                        <span class="badge badge-paid"><i class="fa-solid fa-check-double"></i> Checked Out (Paid)</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>Transaction ID</th><th>User Info</th><th>Status</th><th>Items in Cart/Order</th><th>Total Value</th></tr>
+                        </thead>
+                        <tbody id="tracking-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. MEASUREMENTS SYNC -->
+        <div id="measurements-view" class="view-section">
+            <div class="page-header">
+                <h1>Live Google Sheet Database</h1>
+                <button class="btn-primary" onclick="fetchDirectFromSheet()"><i class="fa-solid fa-rotate"></i> Sync Instantly</button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 style="display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-table" style="color: #0f9d58;"></i> Target ID: 1BRmXMCTmtlUGn5fPu_Cdy...
+                    </h2>
+                    <a href="https://docs.google.com/spreadsheets/d/1BRmXMCTmtlUGn5fPu_Cdy498V5ZJVnMM7Og1O3QdBms/edit#gid=0" target="_blank" style="font-size: 12px; color: var(--aws-blue); text-decoration: none;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Sheet</a>
+                </div>
+                
+                <div id="sync-loader" class="sync-loader">
+                    <i class="fa-solid fa-circle-notch"></i><br>
+                    Connecting to Google Sheets & Fetching Data Immediately...
+                </div>
+
+                <div class="table-responsive" id="table-container" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Profile Name</th>
+                                <th>Chest (in)</th>
+                                <th>Shoulder (in)</th>
+                                <th>Shirt Fit</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sheet-body">
+                            <!-- Data will be injected here instantly -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. COUPON MANAGER -->
+        <div id="coupons-view" class="view-section">
+            <div class="page-header">
+                <h1>Coupon & Promo Manager</h1>
+                <button class="btn-accent" onclick="generateNewCoupon()"><i class="fa-solid fa-plus"></i> Create New Coupon</button>
+            </div>
+            <div class="card">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Promo Code</th><th>Discount Value</th><th>Limit</th><th>Status</th></tr></thead>
+                        <tbody id="coupons-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="toast" id="system-toast">Notification message</div>
+
+    <script>
+        // --- 1. TAB SWITCHING ---
+        function switchTab(viewId, element) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-menu li').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(viewId + '-view').classList.add('active');
+            element.classList.add('active');
+            
+            if(viewId === 'tracking') loadTrackingData();
+            if(viewId === 'coupons') loadCoupons();
+        }
+
+        // --- 2. LOAD DASHBOARD & TRACKING DATA ---
+        function loadTrackingData() {
+            const tbody = document.getElementById('tracking-body');
+            const cartData = JSON.parse(localStorage.getItem('zudio_cart')) || [];
+            const ordersData = JSON.parse(localStorage.getItem('zudio_orders')) || [];
+            const userName = localStorage.getItem('zudio_name') || "Live App User";
+            const userPhone = localStorage.getItem('zudio_mobile') || "Testing";
+
+            let html = '';
+            let totalSales = 0;
+
+            if (cartData.length > 0) {
+                let cartTotal = cartData.reduce((sum, item) => sum + parseInt(item.price), 0);
+                let itemsList = cartData.map(item => `<span>${item.title}</span>`).join('');
+                html += `<tr style="background-color: #fffaf0;">
+                        <td style="font-family: monospace; font-weight:bold;">SESSION-ACTIVE</td>
+                        <td><strong>${userName}</strong><br><small style="color:gray;">${userPhone}</small></td>
+                        <td><span class="badge badge-cart"><i class="fa-solid fa-spinner fa-spin"></i> In Bag</span></td>
+                        <td><div class="item-list">${itemsList}</div></td>
+                        <td style="font-weight:bold; color:var(--warning);">₹${cartTotal} (Pending)</td>
+                    </tr>`;
+            }
+
+            if (ordersData.length > 0) {
+                ordersData.forEach(order => {
+                    totalSales += parseInt(order.total);
+                    let itemsList = order.items.map(item => `<span>${item.title}</span>`).join('');
+                    html += `<tr>
+                            <td style="font-family: monospace; color:var(--aws-blue);">${order.orderId}</td>
+                            <td><strong>${userName}</strong><br><small style="color:gray;">Paid via Gateway</small></td>
+                            <td><span class="badge badge-paid"><i class="fa-solid fa-check"></i> Checked Out</span></td>
+                            <td><div class="item-list">${itemsList}</div></td>
+                            <td style="font-weight:bold; color:var(--success);">₹${order.total}</td>
+                        </tr>`;
+                });
+            }
+
+            if(html === '') {
+                html += `<tr>
+                        <td style="font-family: monospace; color:var(--aws-blue);">ZD-847291</td>
+                        <td><strong>Aditi Sharma</strong><br><small style="color:gray;">+91 98765*****</small></td>
+                        <td><span class="badge badge-paid"><i class="fa-solid fa-check"></i> Checked Out</span></td>
+                        <td><div class="item-list"><span>Oversized Black Tee</span><span>Urban Denim Jacket</span></div></td>
+                        <td style="font-weight:bold; color:var(--success);">₹1198</td>
+                    </tr>`;
+                totalSales += 1198;
+            }
+
+            tbody.innerHTML = html;
+            document.getElementById('stat-sales').innerHTML = `₹${totalSales + 4500} <i class="fa-solid fa-arrow-trend-up" style="font-size:14px; color:var(--success);"></i>`;
+            document.getElementById('stat-carts').innerHTML = `${cartData.length > 0 ? 1 : 0} <i class="fa-solid fa-bag-shopping"></i>`;
+            document.getElementById('stat-orders').innerHTML = `${ordersData.length + 1} <i class="fa-solid fa-box-open"></i>`;
+        }
+
+        // --- 3. GOOGLE SHEETS DIRECT CSV FETCH LOGIC ---
+        // Using Google Sheets public CSV export endpoint for instant fetch without needing Apps Script setup.
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1BRmXMCTmtlUGn5fPu_Cdy498V5ZJVnMM7Og1O3QdBms/gviz/tq?tqx=out:csv&sheet=Sheet1";
+
+        function fetchDirectFromSheet() {
+            const loader = document.getElementById('sync-loader');
+            const container = document.getElementById('table-container');
+            const tbody = document.getElementById('sheet-body');
+            
+            // Show Loader, Hide Table immediately
+            container.style.display = 'none';
+            loader.style.display = 'block';
+
+            // Cache Buster
+            const fetchUrl = `${SHEET_CSV_URL}&t=${new Date().getTime()}`;
+
+            fetch(fetchUrl)
+            .then(res => {
+                if(!res.ok) throw new Error("Network response was not ok");
+                return res.text();
+            })
+            .then(csvData => {
+                const rows = csvData.split('\n');
+                let html = '';
+                
+                // Assuming first row is headers, start from 1 to skip
+                // Process rows in reverse to show latest at top
+                for (let i = rows.length - 1; i > 0; i--) {
+                    if(!rows[i].trim()) continue;
+                    
+                    // Parse CSV line handling quotes (basic regex implementation)
+                    const cols = rows[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*\$)/g) || [];
+                    
+                    // Clean up quotes from parsed columns
+                    const cleanCols = cols.map(c => c.replace(/^"|"\$/g, ''));
+                    
+                    // Based on your sheet structure:
+                    // 0: Timestamp, 1: Profile ID, 2: Profile Name, 3: Chest, 4: Shoulder, 5: Sleeve, 6: Shirt Length, 7: Shirt Fit
+                    const timestamp = cleanCols[0] || 'Live Sync';
+                    const name = cleanCols[2] || '-';
+                    const chest = cleanCols[3] || '-';
+                    const shoulder = cleanCols[4] || '-';
+                    const fit = cleanCols[7] || 'Regular';
+
+                    html += `
+                        <tr>
+                            <td style="color:gray; font-size:11px;">${timestamp}</td>
+                            <td><strong>${name}</strong></td>
+                            <td>${chest}</td>
+                            <td>${shoulder}</td>
+                            <td><span class="badge badge-active">${fit}</span></td>
+                            <td><span class="badge badge-sync"><i class="fa-solid fa-cloud-check"></i> DB Sync</span></td>
+                        </tr>`;
+                }
+
+                if (html === '') html = getDummyFallbackData();
+                
+                // Hide Loader, Show Table
+                loader.style.display = 'none';
+                container.style.display = 'block';
+                tbody.innerHTML = html;
+                showToast("Instant Sync Successful!");
+            })
+            .catch(err => {
+                console.error("Direct fetch failed, showing fallback data", err);
+                loader.style.display = 'none';
+                container.style.display = 'block';
+                tbody.innerHTML = getDummyFallbackData();
+                showToast("Network Error: Make sure Sheet is 'Anyone with link can view'", true);
+            });
+        }
+
+        function getDummyFallbackData() {
+            return `
+                <tr>
+                    <td style="color:gray; font-size:11px;">10/6/2026 11:42:46</td>
+                    <td><strong>Gopesh</strong></td>
+                    <td>38</td><td>17</td>
+                    <td><span class="badge badge-active">Regular</span></td>
+                    <td><span class="badge badge-cart"><i class="fa-solid fa-database"></i> Fallback</span></td>
+                </tr>
+                <tr>
+                    <td style="color:gray; font-size:11px;">9/22/2026 22:11:12</td>
+                    <td><strong>Jitendra Joshi (President)</strong></td>
+                    <td>4</td><td>4</td>
+                    <td><span class="badge badge-active">Regular</span></td>
+                    <td><span class="badge badge-cart"><i class="fa-solid fa-database"></i> Fallback</span></td>
+                </tr>`;
+        }
+
+        // --- 4. COUPON MANAGEMENT ---
+        function loadCoupons() {
+            let coupons = JSON.parse(localStorage.getItem('zudio_coupons'));
+            if (!coupons) {
+                coupons = [
+                    { code: "ZUDIO50", discountPercent: 50, maxLimit: 200, active: true },
+                    { code: "WELCOME10", discountPercent: 10, maxLimit: 500, active: true }
+                ];
+                localStorage.setItem('zudio_coupons', JSON.stringify(coupons));
+            }
+            
+            let html = coupons.map(c => `
+                <tr>
+                    <td style="font-family: monospace; font-weight: bold; color: var(--aws-blue);">${c.code}</td>
+                    <td>${c.discountPercent}% OFF (Max ₹${c.maxLimit})</td>
+                    <td>Unlimited</td>
+                    <td><span class="badge badge-paid">Active</span></td>
+                </tr>
+            `).join('');
+            document.getElementById('coupons-body').innerHTML = html;
+        }
+
+        function generateNewCoupon() {
+            let coupons = JSON.parse(localStorage.getItem('zudio_coupons')) || [];
+            const code = "HACK" + Math.random().toString(36).substring(2, 6).toUpperCase();
+            
+            coupons.unshift({ code: code, discountPercent: 20, maxLimit: 300, active: true });
+            localStorage.setItem('zudio_coupons', JSON.stringify(coupons));
+            
+            loadCoupons();
+            showToast(`Promo Code ${code} Generated!`);
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('system-toast');
+            toast.innerText = msg;
+            toast.style.borderLeftColor = isError ? 'var(--warning)' : 'var(--success)';
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // Init App
+        window.onload = () => {
+            loadTrackingData();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shopping Bag - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Razorpay Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; --text-muted: #8e8e93; --success: #34c759; --gold: #ffd700; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .header { padding: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; }
+        
+        .main-content { flex: 1; overflow-y: auto; padding-bottom: 100px; }
+        
+        .cart-item { display: flex; background: var(--card-bg); margin: 15px; border-radius: 12px; padding: 15px; gap: 15px; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .cart-item img { width: 65px; height: 85px; object-fit: cover; border-radius: 8px; }
+        
+        /* COUPON UI SECTION */
+        .coupon-box { background: var(--card-bg); border-radius: 12px; margin: 0 15px 15px; padding: 12px 15px; border: 1px dashed #444; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .coupon-box.applied { border-color: var(--success); background: rgba(52,199,89,0.05); }
+        .coupon-box input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 13px; text-transform: uppercase; font-weight: 600; }
+        .coupon-box input::placeholder { font-weight: 400; color: #555; }
+        .coupon-box button { background: var(--text-muted); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .coupon-box button.active { background: var(--accent); }
+        .coupon-message { font-size: 11px; margin: -10px 15px 15px; display: none; font-weight: 500; }
+
+        /* Z-COIN UI SECTION - CUSTOM INPUT */
+        .coin-box { background: var(--card-bg); border-radius: 12px; margin: 0 15px 20px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .coin-box.active { border-color: var(--gold); background: rgba(255, 215, 0, 0.05); }
+        .coin-info { display: flex; align-items: center; gap: 12px; }
+        .coin-info i { font-size: 24px; color: var(--gold); }
+        .coin-action-input { display: flex; align-items: center; gap: 8px; }
+        .coin-action-input input { width: 70px; background: transparent; border: 1px solid #444; color: white; border-radius: 6px; padding: 6px; font-size: 13px; outline: none; text-align: center; font-weight: 600; }
+        .coin-action-input input:focus { border-color: var(--gold); }
+        .coin-action-input button { background: var(--text-muted); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .coin-box.active .coin-action-input button { background: var(--gold); color: black; }
+
+        .receipt-box { background: var(--card-bg); padding: 20px; border-radius: 12px; margin: 0 15px 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .receipt-title { font-size: 13px; font-weight: 600; margin-bottom: 20px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+        .bill-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 13px; color: #d1d1d6; }
+        .bill-row.discount { color: var(--success); }
+        .bill-row.gold { color: var(--gold); font-weight: 600; }
+        .bill-total { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #444; font-size: 16px; font-weight: 700; color: white; margin-bottom: 20px; }
+        
+        .btn-primary { width: 100%; padding: 15px; border-radius: 10px; background: #ff416c; color: white; font-weight: 600; border: none; font-size: 15px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(255,65,108,0.3); display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-primary:active { transform: scale(0.98); }
+        
+        .empty-state { text-align:center; padding: 80px 20px; color: var(--text-muted); display: none; }
+        .empty-state i { font-size: 60px; margin-bottom: 20px; color: #2c2c2e; }
+
+        .redirect-loader { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 500; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .loader-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,65,108,0.2); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-top: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; background: rgba(15, 16, 20, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 12px 0 15px; border-top: 1px solid #222; z-index: 100; }
+        .nav-item { color: var(--text-muted); text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; }
+        .nav-item.active { color: white; }
+        .nav-item.active i { color: var(--accent); transform: scale(1.1); }
+        .nav-item i { font-size: 20px; transition: 0.2s; }
+        .nav-item span { font-size: 10px; font-weight: 500; }
+        .badge { position: absolute; top: -5px; right: 12px; background: var(--accent); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 700; border: 2px solid var(--bg-dark); }
+        
+        /* Simple Toast CSS */
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 20px; border-radius: 30px; font-size: 12px; font-weight: 600; display: none; z-index: 999; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 1px solid #555; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="redirect-screen" class="redirect-loader">
+        <i class="fa-solid fa-shield-halved" style="font-size: 50px; color: #34c759; margin-bottom: 20px;"></i>
+        <h2 style="font-size: 18px;">Redirecting to Secure Gateway...</h2>
+        <p style="color: gray; font-size: 12px; margin-top: 10px; width: 80%;">Please wait while we transfer you to Razorpay via External Browser.</p>
+        <div class="loader-spinner"></div>
+    </div>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-left" onclick="window.location.href='index.html'" style="cursor:pointer;"></i>
+        Shopping Bag
+    </div>
+
+    <div class="main-content">
+        <div id="cart-empty" class="empty-state">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <p>Your bag is empty.</p>
+            <button class="btn-primary" style="width: 160px; padding: 10px; margin: 20px auto; background:white; color:black;" onclick="window.location.href='index.html'">Explore Fashion</button>
+        </div>
+        
+        <div id="cart-container">
+            <div id="cart-list"></div>
+            
+            <!-- COUPON SECTION -->
+            <div class="coupon-box" id="coupon-box">
+                <i class="fa-solid fa-tag" id="coupon-icon" style="color: gray;"></i>
+                <input type="text" id="coupon-input" placeholder="APPLY COUPON CODE" oninput="checkCouponInput()">
+                <button id="apply-btn" onclick="toggleCoupon()">APPLY</button>
+            </div>
+            <div id="coupon-msg" class="coupon-message"></div>
+
+            <!-- MANUAL Z-COINS REDEEM SECTION -->
+            <div class="coin-box" id="coin-box" style="display: none;">
+                <div class="coin-info">
+                    <i class="fa-solid fa-coins"></i>
+                    <div>
+                        <div style="font-size: 13px; font-weight: 600;">Pay via Z-Coins</div>
+                        <div style="font-size: 10px; color: gray;" id="coin-balance-text">Balance: 0 Coins</div>
+                    </div>
+                </div>
+                <div class="coin-action-input">
+                    <input type="number" id="coin-input-field" placeholder="0" min="0">
+                    <button id="coin-apply-btn" onclick="applyManualCoins()">APPLY</button>
+                </div>
+            </div>
+            <div id="coin-msg" class="coupon-message" style="margin: -15px 15px 15px; color: var(--gold);"></div>
+
+            <div class="receipt-box" id="receipt-section">
+                <div class="receipt-title">PRICE DETAILS (<span id="cart-item-count">0</span> ITEMS)</div>
+                <div class="bill-row"><span>Total MRP</span> <span id="bill-mrp">₹0</span></div>
+                <div class="bill-row discount"><span>Discount on MRP</span> <span id="bill-discount">-₹0</span></div>
+                
+                <div class="bill-row discount" id="coupon-bill-row" style="display: none;">
+                    <span>Coupon Savings</span> <span id="bill-coupon-amt">-₹0</span>
+                </div>
+
+                <div class="bill-row"><span>GST (18%)</span> <span id="bill-tax">₹0</span></div>
+                
+                <div class="bill-row gold" id="coin-bill-row" style="display: none;">
+                    <span>Z-Coins Redeemed</span> <span id="bill-coin-amt">-₹0</span>
+                </div>
+
+                <div class="bill-row"><span>Delivery Fee</span> <span style="color:var(--success)">FREE</span></div>
+                <div class="bill-total"><span>Total Amount</span> <span id="bill-total">₹0</span></div>
+                
+                <button class="btn-primary" onclick="handlePaymentRedirect()">
+                    <i class="fa-solid fa-lock"></i> Pay Securely via Chrome
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="system-toast">Notification</div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="window.location.href='index.html'"><i class="fa-solid fa-house"></i><span>Home</span></div>
+        <div class="nav-item" onclick="window.location.href='categories.html'"><i class="fa-solid fa-border-all"></i><span>Categories</span></div>
+        <div class="nav-item active">
+            <span class="badge" id="cart-badge" style="display:none;">0</span>
+            <i class="fa-solid fa-bag-shopping"></i><span>Bag</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='profile.html'"><i class="fa-regular fa-user"></i><span>Profile</span></div>
+    </div>
+</div>
+
+<script>
+    let cart = JSON.parse(localStorage.getItem('zudio_cart')) || [];
+    let finalAmountForPayment = 0;
+    
+    // Default 500 coins for testing if missing
+    if (localStorage.getItem('zudio_coins') === null) {
+        localStorage.setItem('zudio_coins', 500); 
+    }
+    let userCoins = parseInt(localStorage.getItem('zudio_coins')) || 0;
+    
+    // State Variables
+    let activeCouponObj = null;
+    let appliedCoinsInput = 0; 
+    let preCoinTotalAmount = 0; // Tracks bill amount before coin deduction
+
+    let adminCoupons = JSON.parse(localStorage.getItem('zudio_coupons'));
+    if (!adminCoupons) {
+        adminCoupons = [
+            { code: "ZUDIO50", discountPercent: 50, maxLimit: 200, active: true },
+            { code: "WELCOME10", discountPercent: 10, maxLimit: 500, active: true }
+        ];
+        localStorage.setItem('zudio_coupons', JSON.stringify(adminCoupons));
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('system-toast');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    function saveState() {
+        localStorage.setItem('zudio_cart', JSON.stringify(cart));
+        updateBadge();
+    }
+
+    function removeCart(idx) {
+        cart.splice(idx, 1);
+        saveState();
+        if(cart.length === 0) {
+            removeCoupon();
+            removeCoins();
+        }
+        renderCart();
+    }
+
+    function checkCouponInput() {
+        const val = document.getElementById('coupon-input').value.trim();
+        const btn = document.getElementById('apply-btn');
+        if (!activeCouponObj) {
+            btn.style.background = val.length > 2 ? 'var(--accent)' : 'var(--text-muted)';
+        }
+    }
+
+    function toggleCoupon() {
+        if(cart.length === 0) return alert("Your bag is empty!");
+
+        const inputEl = document.getElementById('coupon-input');
+        const code = inputEl.value.trim().toUpperCase();
+        const msgEl = document.getElementById('coupon-msg');
+        const btn = document.getElementById('apply-btn');
+        const box = document.getElementById('coupon-box');
+        const icon = document.getElementById('coupon-icon');
+
+        if (activeCouponObj) {
+            removeCoupon();
+            return;
+        }
+
+        let dbCoupons = JSON.parse(localStorage.getItem('zudio_coupons')) || adminCoupons;
+        const foundCoupon = dbCoupons.find(c => c.code === code && c.active);
+
+        if (foundCoupon) {
+            activeCouponObj = foundCoupon;
+            inputEl.disabled = true;
+            btn.innerText = 'REMOVE';
+            btn.style.background = '#444';
+            box.classList.add('applied');
+            icon.style.color = 'var(--success)';
+            
+            msgEl.innerText = `'${code}' applied! You saved extra money. 🎉`;
+            msgEl.style.color = 'var(--success)';
+            msgEl.style.display = 'block';
+            
+            renderCart(); 
+        } else {
+            msgEl.innerText = `Invalid or expired coupon code.`;
+            msgEl.style.color = 'var(--accent)';
+            msgEl.style.display = 'block';
+        }
+    }
+
+    function removeCoupon() {
+        activeCouponObj = null;
+        const inputEl = document.getElementById('coupon-input');
+        inputEl.value = '';
+        inputEl.disabled = false;
+        
+        document.getElementById('apply-btn').innerText = 'APPLY';
+        document.getElementById('apply-btn').style.background = 'var(--text-muted)';
+        document.getElementById('coupon-box').classList.remove('applied');
+        document.getElementById('coupon-icon').style.color = 'gray';
+        document.getElementById('coupon-msg').style.display = 'none';
+        
+        renderCart(); 
+    }
+
+    // --- MANUAL COIN ENTRY LOGIC ---
+    function applyManualCoins() {
+        if(cart.length === 0) return alert("Your bag is empty!");
+        
+        let inputEl = document.getElementById('coin-input-field');
+        let btn = document.getElementById('coin-apply-btn');
+        
+        // Check if removing
+        if(appliedCoinsInput > 0) {
+            removeCoins();
+            return;
+        }
+
+        let inputVal = parseInt(inputEl.value);
+        if (isNaN(inputVal) || inputVal <= 0) {
+            removeCoins();
+            return;
+        }
+
+        // Rule 1: Cannot use more coins than balance
+        if (inputVal > userCoins) {
+            inputVal = userCoins;
+            showToast(`Applied max available balance: ${userCoins} coins`);
+        }
+
+        // Rule 2: Cannot use more coins than required for total bill
+        let maxCoinsNeeded = preCoinTotalAmount * 10;
+        if (inputVal > maxCoinsNeeded) {
+            inputVal = maxCoinsNeeded;
+            showToast(`Bill covered! Cap applied at ${maxCoinsNeeded} coins`);
+        }
+
+        inputEl.value = inputVal;
+        inputEl.disabled = true;
+        appliedCoinsInput = inputVal;
+        
+        btn.innerText = 'REMOVE';
+        document.getElementById('coin-box').classList.add('active');
+        
+        renderCart();
+    }
+
+    function removeCoins() {
+        appliedCoinsInput = 0;
+        let inputEl = document.getElementById('coin-input-field');
+        inputEl.value = '';
+        inputEl.disabled = false;
+        
+        let btn = document.getElementById('coin-apply-btn');
+        btn.innerText = 'APPLY';
+        
+        document.getElementById('coin-box').classList.remove('active');
+        document.getElementById('coin-msg').style.display = 'none';
+        
+        renderCart();
+    }
+
+    function renderCart() {
+        if(cart.length === 0) {
+            document.getElementById('cart-empty').style.display = 'block';
+            document.getElementById('cart-container').style.display = 'none';
+            return;
+        }
+        document.getElementById('cart-empty').style.display = 'none';
+        document.getElementById('cart-container').style.display = 'block';
+        
+        let sub = 0; let totalMrp = 0;
+        document.getElementById('cart-list').innerHTML = cart.map((c, i) => {
+            let itemPrice = parseInt(c.price);
+            let itemMrp = parseInt(c.mrp);
+            sub += itemPrice;
+            totalMrp += itemMrp;
+            
+            return `
+                <div class="cart-item">
+                    <img src="${c.img}">
+                    <div style="flex:1">
+                        <div style="font-size:10px; color:gray; font-weight:600; text-transform:uppercase;">ZUDIO</div>
+                        <div style="font-size:13px; font-weight:500; margin:4px 0;">${c.title}</div>
+                        <div style="font-weight:bold; font-size:14px;">₹${itemPrice} <span style="text-decoration:line-through; color:gray; font-size:12px; font-weight:normal; margin-left:5px;">₹${itemMrp}</span></div>
+                    </div>
+                    <i class="fa-solid fa-trash-can" style="color:var(--text-muted); padding:10px; cursor:pointer;" onclick="removeCart(${i})"></i>
+                </div>`;
+        }).join('');
+        
+        // 1. Coupon Math
+        let couponDiscountAmount = 0;
+        if (activeCouponObj) {
+            couponDiscountAmount = Math.round(sub * (activeCouponObj.discountPercent / 100));
+            if (couponDiscountAmount > activeCouponObj.maxLimit) {
+                couponDiscountAmount = activeCouponObj.maxLimit;
+            }
+        }
+
+        let subAfterCoupon = sub - couponDiscountAmount;
+        const tax = Math.round(subAfterCoupon * 0.05); // 5% GST
+        preCoinTotalAmount = subAfterCoupon + tax;
+        const defaultMrpDiscount = totalMrp - sub;
+
+        // 2. Adjust coins if cart changed and preCoinTotal dropped
+        let maxCoinsNeeded = preCoinTotalAmount * 10;
+        if (appliedCoinsInput > maxCoinsNeeded) {
+            appliedCoinsInput = maxCoinsNeeded;
+            document.getElementById('coin-input-field').value = appliedCoinsInput;
+        }
+
+        // Floor calculation: 10 coins = ₹1
+        let actualCoinDiscountRupees = Math.floor(appliedCoinsInput / 10);
+        let validCoinsDeducted = actualCoinDiscountRupees * 10; // Ignores extra remainder coins like 5
+
+        // Show UI for Coins if user has balance
+        if (userCoins >= 10) {
+            document.getElementById('coin-box').style.display = 'flex';
+            document.getElementById('coin-balance-text').innerText = `Balance: ${userCoins} Coins (10 Coins = ₹1)`;
+            
+            if (validCoinsDeducted > 0) {
+                document.getElementById('coin-msg').innerText = `${validCoinsDeducted} Z-Coins used for ₹${actualCoinDiscountRupees} discount!`;
+                document.getElementById('coin-msg').style.display = 'block';
+            } else {
+                document.getElementById('coin-msg').style.display = 'none';
+            }
+        } else {
+            document.getElementById('coin-box').style.display = 'none';
+        }
+
+        // Final Amount Calculation
+        finalAmountForPayment = preCoinTotalAmount - actualCoinDiscountRupees;
+        if(finalAmountForPayment < 0) finalAmountForPayment = 0;
+        
+        // Update DOM elements
+        document.getElementById('cart-item-count').innerText = cart.length;
+        document.getElementById('bill-mrp').innerText = `₹${totalMrp}`;
+        document.getElementById('bill-discount').innerText = `-₹${defaultMrpDiscount}`;
+        
+        if (couponDiscountAmount > 0) {
+            document.getElementById('coupon-bill-row').style.display = 'flex';
+            document.getElementById('bill-coupon-amt').innerText = `-₹${couponDiscountAmount}`;
+        } else {
+            document.getElementById('coupon-bill-row').style.display = 'none';
+        }
+
+        if (actualCoinDiscountRupees > 0) {
+            document.getElementById('coin-bill-row').style.display = 'flex';
+            document.getElementById('bill-coin-amt').innerText = `-₹${actualCoinDiscountRupees}`;
+        } else {
+            document.getElementById('coin-bill-row').style.display = 'none';
+        }
+
+        document.getElementById('bill-tax').innerText = `₹${tax}`;
+        document.getElementById('bill-total').innerText = `₹${finalAmountForPayment}`;
+    }
+
+    function updateBadge() {
+        const b = document.getElementById('cart-badge');
+        b.innerText = cart.length; 
+        b.style.display = cart.length ? 'block' : 'none';
+    }
+
+    function handlePaymentRedirect() {
+        if(cart.length === 0) return alert("Your bag is empty!");
+        document.getElementById('redirect-screen').style.display = 'flex';
+        setTimeout(() => { initiateRazorpay(); }, 1500); 
+    }
+
+    function initiateRazorpay() {
+        // Bypass Razorpay if totally free via coins
+        if (finalAmountForPayment === 0) {
+            document.getElementById('redirect-screen').innerHTML = `
+                <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #34c759; margin-bottom: 20px;"></i>
+                <h2 style="font-size: 18px;">Paid using Z-Coins!</h2>
+                <p style="color: gray; font-size: 12px; margin-top: 10px;">Processing order...</p>
+            `;
+            setTimeout(() => { saveOrderToHistory("COIN_PAYMENT_" + Date.now()); }, 1500);
+            return;
+        }
+
+        var options = {
+            "key": "rzp_test_TUU0LTUdaSnxx4",
+            "amount": finalAmountForPayment * 100, 
+            "currency": "INR",
+            "name": "Zudio Mobile Secure",
+            "description": "Payment via External Gateway",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/4/41/Zudio_logo.png",
+            "handler": function (response){
+                document.getElementById('redirect-screen').innerHTML = `
+                    <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #34c759; margin-bottom: 20px;"></i>
+                    <h2 style="font-size: 18px;">Payment Verified!</h2>
+                    <p style="color: gray; font-size: 12px; margin-top: 10px;">Redirecting back to app...</p>
+                `;
+                setTimeout(() => { saveOrderToHistory(response.razorpay_payment_id); }, 1500);
+            },
+            "modal": {
+                "ondismiss": function(){
+                    document.getElementById('redirect-screen').style.display = 'none';
+                }
+            },
+            "prefill": {
+                "name": localStorage.getItem('zudio_name') || "Guest User",
+                "contact": localStorage.getItem('zudio_mobile') || "9999999999"
+            },
+            "theme": { "color": "#ff416c" }
+        };
+
+        var rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response){
+            alert("Payment Failed: " + response.error.description);
+            document.getElementById('redirect-screen').style.display = 'none';
+        });
+        rzp1.open();
+    }
+
+    function saveOrderToHistory(paymentId) {
+        let orders = JSON.parse(localStorage.getItem('zudio_orders')) || [];
+        
+        let newOrder = {
+            orderId: 'ZD-' + Math.floor(Math.random() * 900000 + 100000),
+            paymentId: paymentId,
+            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+            status: 'Processing',
+            items: cart,
+            total: finalAmountForPayment
+        };
+        
+        orders.unshift(newOrder); 
+        localStorage.setItem('zudio_orders', JSON.stringify(orders));
+
+        // Deduct actually applied Coins from Balance
+        let actualCoinDiscountRupees = Math.floor(appliedCoinsInput / 10);
+        if (actualCoinDiscountRupees > 0) {
+            let coinsToDeduct = actualCoinDiscountRupees * 10;
+            userCoins -= coinsToDeduct;
+            localStorage.setItem('zudio_coins', userCoins);
+        }
+
+        // Clear Cart & Coupon state
+        cart = [];
+        activeCouponObj = null;
+        appliedCoinsInput = 0;
+        saveState();
+        
+        document.getElementById('redirect-screen').style.display = 'none';
+        window.location.href = 'orders.html'; 
+    }
+
+    // Init App
+    renderCart();
+    updateBadge();
+</script>
+</body>
+</html>

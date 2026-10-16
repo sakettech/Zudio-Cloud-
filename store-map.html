@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Profile - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; --text-muted: #8e8e93; --gold: #ffd700; --success: #34c759; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .header { padding: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #222; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-left i { cursor: pointer; transition: 0.2s; }
+        .header-left i:active { color: var(--accent); }
+        .header-actions i { font-size: 20px; color: white; cursor: pointer; margin-left: 15px; }
+
+        .main-content { flex: 1; overflow-y: auto; padding-bottom: 100px; }
+        
+        /* Store Locator UI */
+        .locator-box { padding: 20px; }
+        .section-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin: 25px 20px 10px; }
+        .menu-card { background: var(--card-bg); margin: 0 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+
+        /* Nearby Store List Styles */
+        .store-list { margin-bottom: 20px; }
+        .store-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .store-info h4 { font-size: 14px; margin-bottom: 4px; color: white; }
+        .store-info p { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+        .store-info .distance { color: var(--accent); font-size: 11px; font-weight: 600; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; background: rgba(255,65,108,0.1); padding: 3px 8px; border-radius: 4px; }
+        .btn-direction { background: white; color: black; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-direction:active { transform: scale(0.95); }
+
+        .locator-input-group { display: flex; align-items: center; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 5px 15px; margin-bottom: 12px; border: 1px solid #333; }
+        .locator-input-group i { color: var(--text-muted); font-size: 14px; }
+        .locator-input-group input { flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; font-size: 13px; }
+        .locator-input-group input::placeholder { color: #555; }
+        .locator-btn { width: 100%; padding: 12px; border-radius: 8px; background: #333; color: white; font-weight: 600; border: none; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        
+        .divider { text-align: center; border-bottom: 1px dashed #444; line-height: 0.1em; margin: 25px 0 20px; }
+        .divider span { background: var(--card-bg); padding: 0 10px; color: var(--text-muted); font-size: 11px; font-weight: 600; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; background: rgba(15, 16, 20, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 12px 0 15px; border-top: 1px solid #222; z-index: 100; }
+        .nav-item { color: var(--text-muted); text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; position: relative; }
+        .nav-item.active { color: white; }
+        .nav-item.active i { color: var(--accent); transform: scale(1.1); }
+        .nav-item i { font-size: 20px; transition: 0.2s; }
+        .nav-item span { font-size: 10px; font-weight: 500; }
+        .badge { position: absolute; top: -5px; right: 12px; background: var(--accent); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 700; border: 2px solid var(--bg-dark); }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div class="header">
+        <div class="header-left">
+            <i class="fa-solid fa-arrow-left" onclick="window.history.back()"></i>
+            <span>Nearby Stores</span>
+        </div>
+        <div class="header-actions">
+            <i class="fa-regular fa-bell"></i>
+            <i class="fa-solid fa-gear"></i>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- STORE LOCATOR WITH LIST -->
+        <div class="section-title">Zudio Stores Near Me (Dehradun)</div>
+        <div class="menu-card locator-box">
+            
+            <div class="store-list">
+                <!-- Store 1 -->
+                <div class="store-item">
+                    <div class="store-info">
+                        <h4>Zudio - Chakrata Road</h4>
+                        <p>Near Ballupur Chowk, Dehradun</p>
+                        <span class="distance"><i class="fa-solid fa-location-dot"></i> ~5.2 km from Uttaranchal</span>
+                    </div>
+                    <button class="btn-direction" onclick="getDirections('Zudio Chakrata Road Dehradun')">Directions</button>
+                </div>
+                
+                <!-- Store 2 -->
+                <div class="store-item">
+                    <div class="store-info">
+                        <h4>Zudio - Rajpur Road</h4>
+                        <p>Opposite Secretariat, Dehradun</p>
+                        <span class="distance"><i class="fa-solid fa-location-dot"></i> ~8.5 km from Uttaranchal</span>
+                    </div>
+                    <button class="btn-direction" onclick="getDirections('Zudio Rajpur Road Dehradun')">Directions</button>
+                </div>
+
+                <!-- Store 3 -->
+                <div class="store-item">
+                    <div class="store-info">
+                        <h4>Zudio - Haridwar Road</h4>
+                        <p>Dharampur area, Dehradun</p>
+                        <span class="distance"><i class="fa-solid fa-location-dot"></i> ~11.4 km from Uttaranchal</span>
+                    </div>
+                    <button class="btn-direction" onclick="getDirections('Zudio Haridwar Road Dehradun')">Directions</button>
+                </div>
+            </div>
+
+            <div class="divider"><span>SEARCH OTHER CITY</span></div>
+            
+            <div class="locator-input-group">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="locator-input" placeholder="e.g. Roorkee, Haridwar">
+            </div>
+            <button class="locator-btn" onclick="searchCustomLocation()">Search Map</button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="window.location.href='index.html'"><i class="fa-solid fa-house"></i><span>Home</span></div>
+        <div class="nav-item" onclick="window.location.href='categories.html'"><i class="fa-solid fa-border-all"></i><span>Categories</span></div>
+        <div class="nav-item" onclick="window.location.href='bag.html'">
+            <span class="badge" id="cart-badge" style="display:none;">0</span>
+            <i class="fa-solid fa-bag-shopping"></i><span>Bag</span>
+        </div>
+        <div class="nav-item active" onclick="window.location.href='profile.html'"><i class="fa-regular fa-user"></i><span>Profile</span></div>
+    </div>
+</div>
+
+<script>
+    // Update Bag Badge
+    function updateBadge() {
+        let cart = JSON.parse(localStorage.getItem('zudio_cart')) || [];
+        const badge = document.getElementById('cart-badge');
+        if(badge) {
+            badge.innerText = cart.length;
+            badge.style.display = cart.length > 0 ? 'block' : 'none';
+        }
+    }
+
+    // --- GOOGLE MAPS REDIRECT LOGIC ---
+    function getDirections(storeName) {
+        const query = encodeURIComponent(storeName);
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+        window.open(mapsUrl, '_blank');
+    }
+
+    function searchCustomLocation() {
+        const area = document.getElementById('locator-input').value.trim();
+        if (area === "") {
+            alert("Please enter a city or area name.");
+            return;
+        }
+        const query = encodeURIComponent(`Zudio in ${area}`);
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+        window.open(mapsUrl, '_blank');
+    }
+
+    // Run on load
+    window.onload = updateBadge;
+</script>
+</body>
+</html>

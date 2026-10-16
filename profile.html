@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Profile - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; --text-muted: #8e8e93; --text-light: #ffffff; --gold: #ffd700; --success: #34c759; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-dark); color: white; display: flex; justify-content: center; overflow: hidden; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .header { padding: 20px; font-size: 18px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; z-index: 10; background: var(--bg-dark); }
+        .header-actions i { font-size: 20px; color: white; cursor: pointer; margin-left: 15px; }
+
+        /* DASHBOARD */
+        .dashboard { flex: 1; overflow-y: auto; padding-bottom: 100px; }
+        .user-header { display: flex; align-items: center; gap: 15px; padding: 25px 20px; background: linear-gradient(180deg, rgba(255,65,108,0.1) 0%, transparent 100%); border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; }
+        .avatar { width: 75px; height: 75px; background: #2c2c2e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--accent); border: 2px solid var(--accent); box-shadow: 0 0 15px rgba(255,65,108,0.2); }
+        
+        /* Editable Name UI */
+        .name-wrapper { display: flex; align-items: center; gap: 8px; }
+        .name-wrapper h2 { font-size: 18px; margin: 0; display: inline-block; }
+        .name-wrapper .edit-icon { font-size: 14px; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+        .name-wrapper .edit-icon:hover { color: var(--accent); }
+        .name-input { display: none; background: transparent; border: 1px solid var(--accent); color: white; font-size: 16px; font-weight: 600; padding: 2px 5px; outline: none; border-radius: 4px; width: 140px; }
+        
+        /* Super Z-Coins Animation */
+        .coin-badge { margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); padding: 5px 12px; border-radius: 20px; position: relative; overflow: hidden; }
+        .coin-badge i { color: var(--gold); font-size: 14px; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
+        .coin-badge span { color: var(--gold); font-weight: 700; font-size: 12px; }
+        .coin-badge::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shimmer 2.5s infinite; }
+        @keyframes shimmer { 100% { left: 200%; } }
+
+        /* PREMIUM ACTION GRID */
+        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+        .feature-card { background: var(--card-bg); border-radius: 12px; padding: 20px 15px; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; position: relative; overflow: hidden; }
+        .feature-card:active { transform: scale(0.97); }
+        .feature-card.primary { grid-column: span 2; background: linear-gradient(135deg, #ff416c, #ff4b2b); border: none; display: flex; align-items: center; justify-content: space-between; padding: 20px 25px; text-align: left; }
+        .feature-card i { font-size: 30px; margin-bottom: 10px; color: var(--text-light); }
+        .feature-card.primary i { font-size: 40px; margin-bottom: 0; }
+        .feature-title { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+        .feature-sub { font-size: 10px; color: var(--text-muted); }
+        .feature-card.primary .feature-sub { color: rgba(255,255,255,0.8); font-size: 11px; }
+
+        /* LOCATOR BOX IN PROFILE */
+        .locator-card { background: var(--card-bg); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin: 0 20px 20px; padding: 20px; }
+        .locator-title { font-size: 14px; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .locator-title i { color: var(--accent); }
+        .locator-input-group { display: flex; align-items: center; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 5px 15px; border: 1px solid #333; margin-bottom: 10px; }
+        .locator-input-group i { color: var(--text-muted); font-size: 14px; }
+        .locator-input-group input { flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; font-size: 13px; }
+        .locator-input-group input::placeholder { color: #555; }
+        .btn-locator { width: 100%; padding: 10px; border-radius: 8px; background: white; color: black; font-weight: 600; border: none; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .btn-locator:active { transform: scale(0.97); }
+
+        /* MENU LIST */
+        .section-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin: 10px 20px; }
+        .menu-list { background: var(--card-bg); margin: 0 15px 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        .menu-item { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:active { background: rgba(255,255,255,0.05); }
+        .menu-left { display: flex; align-items: center; gap: 15px; font-size: 14px; font-weight: 500; }
+        .menu-left i { width: 20px; color: var(--text-muted); font-size: 18px; text-align: center; }
+        
+        .live-badge { font-size: 9px; padding: 2px 6px; background: rgba(52,199,89,0.2); color: var(--success); border-radius: 10px; font-weight: 600; border: 1px solid var(--success); margin-left: auto; display: none; }
+
+        /* FULLSCREEN OVERLAYS */
+        .fullscreen-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 200; display: none; flex-direction: column; transform: translateY(100%); transition: 0.3s ease-out; }
+        .fullscreen-overlay.open { display: flex; transform: translateY(0); }
+        .overlay-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); background: var(--bg-dark); z-index: 10; }
+        
+        /* BOTTOM NAV */
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; background: rgba(15, 16, 20, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 12px 0 15px; border-top: 1px solid #222; z-index: 100; }
+        .nav-item { color: var(--text-muted); text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; position: relative; }
+        .nav-item.active { color: white; }
+        .nav-item.active i { color: var(--accent); transform: scale(1.1); }
+        .nav-item i { font-size: 20px; transition: 0.2s; }
+        .nav-item span { font-size: 10px; font-weight: 500; }
+        .badge { position: absolute; top: -5px; right: 12px; background: var(--accent); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 700; border: 2px solid var(--bg-dark); }
+
+        /* SCANNER CAMERA STYLE */
+        #camera-feed { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+        
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 25px; border-radius: 30px; font-size: 13px; font-weight: 600; display: none; z-index: 999; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="toast" class="toast">Action Successful!</div>
+
+    <div class="header">
+        <span>My Profile</span>
+        <div class="header-actions">
+            <i class="fa-regular fa-bell"></i>
+            <i class="fa-solid fa-gear"></i>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <!-- USER INFO -->
+        <div class="user-header">
+            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+            <div>
+                <div class="name-wrapper">
+                    <h2 id="display-name">Saket Janghel</h2>
+                    <input type="text" id="name-input" class="name-input" value="Saket Janghel" onblur="saveName()" onkeypress="handleEnter(event)">
+                    <i class="fa-solid fa-pen edit-icon" id="edit-btn" onclick="editName()"></i>
+                </div>
+                <p id="display-phone">+91 9876543210</p>
+                <div class="coin-badge">
+                    <i class="fa-solid fa-coins"></i> <span id="display-coins">500 Z-Coins</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREMIUM FEATURES GRID -->
+        <div class="feature-grid">
+            <!-- 1. Scan & Go -->
+            <div class="feature-card primary" onclick="openScanner()">
+                <div>
+                    <div class="feature-title">Self Check-In & Pay</div>
+                    <div class="feature-sub">Scan tags using camera, pay in app!</div>
+                </div>
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+        </div>
+
+        <!-- MY ACCOUNT SECTION -->
+        <div class="section-title">My Account</div>
+        <div class="menu-list">
+            <div class="menu-item" onclick="alert('Manage Account Setup Coming Soon!')">
+                <div class="menu-left"><i class="fa-solid fa-user-pen"></i> Manage Account</div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 12px; color: #444;"></i>
+            </div>
+            <div class="menu-item" onclick="window.location.href='orders.html'">
+                <div class="menu-left"><i class="fa-solid fa-box-open"></i> My Orders</div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 12px; color: #444;"></i>
+            </div>
+            <div class="menu-item" onclick="window.location.href='measurements.html'">
+                <div class="menu-left"><i class="fa-solid fa-ruler-combined"></i> Fit Measurements</div>
+                <!-- This badge will show if real data was fetched from DB -->
+                <span class="live-badge" id="measurement-sync-badge">SYNCED</span>
+                <i class="fa-solid fa-chevron-right" style="font-size: 12px; color: #444; margin-left: 10px;"></i>
+            </div>
+            <div class="menu-item" onclick="window.location.href='avatar.html'">
+                <div class="menu-left"><i class="fa-solid fa-person-sparkles"></i> Avatar Studio</div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 12px; color: #444;"></i>
+            </div>
+        </div>
+
+        <!-- STORE LOCATOR BOX -->
+        <div class="locator-card">
+            <div class="locator-title"><i class="fa-solid fa-location-dot"></i> Find Nearby Stores</div>
+            <div class="locator-input-group">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="locator-input" placeholder="Search City (e.g. Dehradun)">
+            </div>
+            <button class="btn-locator" onclick="searchCustomLocation()">Search Map</button>
+        </div>
+
+        <!-- HELP & SUPPORT SECTION -->
+        <div class="section-title">Help & Support</div>
+        <div class="menu-list">
+            <div class="menu-item" onclick="window.location.href='help.html'">
+                <div class="menu-left"><i class="fa-solid fa-headset"></i> Help Center</div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 12px; color: #444;"></i>
+            </div>
+            <div class="menu-item" onclick="alert('FAQs Section Coming Soon!')">
+                <div class="menu-left"><i class="fa-solid fa-circle-question"></i> FAQs</div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 12px; color: #444;"></i>
+            </div>
+            <div class="menu-item" onclick="alert('App Settings Coming Soon!')">
+                <div class="menu-left"><i class="fa-solid fa-gear"></i> Settings</div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 12px; color: #444;"></i>
+            </div>
+            <div class="menu-item" style="color: #ff4b2b; border-top: 1px solid rgba(255,255,255,0.03);" onclick="logout()">
+                <div class="menu-left"><i class="fa-solid fa-arrow-right-from-bracket" style="color: #ff4b2b;"></i> Log Out</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="window.location.href='index.html'"><i class="fa-solid fa-house"></i><span>Home</span></div>
+        <div class="nav-item" onclick="window.location.href='categories.html'"><i class="fa-solid fa-border-all"></i><span>Categories</span></div>
+        <div class="nav-item" onclick="window.location.href='bag.html'">
+            <span class="badge" id="cart-badge" style="display:none;">0</span>
+            <i class="fa-solid fa-bag-shopping"></i><span>Bag</span>
+        </div>
+        <div class="nav-item active"><i class="fa-regular fa-user"></i><span>Profile</span></div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- 1. SCAN & GO (REAL CAMERA) OVERLAY             -->
+<!-- ============================================== -->
+<div class="fullscreen-overlay" id="scanner-overlay">
+    <div class="overlay-header">
+        <span><i class="fa-solid fa-barcode"></i> Scan Tag</span>
+        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeScanner()"></i>
+    </div>
+    <div style="flex: 1; background: #000; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+        
+        <!-- ACTUAL CAMERA VIDEO FEED -->
+        <video id="camera-feed" autoplay playsinline></video>
+
+        <!-- SCANNER UI FRAME -->
+        <div style="width: 250px; height: 250px; border: 2px solid rgba(255,255,255,0.3); border-radius: 20px; position: relative; z-index: 10;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: #34c759; box-shadow: 0 0 15px #34c759; animation: scanAnim 2s infinite linear;"></div>
+        </div>
+        <style>@keyframes scanAnim { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }</style>
+        
+        <!-- Scan Result Card -->
+        <div id="scan-result" style="position: absolute; bottom: 30px; width: 90%; background: var(--card-bg); border-radius: 15px; padding: 20px; display: none; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 20;">
+            <div style="display:flex; gap:15px; align-items:center;">
+                <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=100" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
+                <div style="flex:1;">
+                    <div style="font-size:11px; color:gray;">Item Found via Scan</div>
+                    <div style="font-weight:600; font-size:14px;">Oversized Black Tee</div>
+                    <div style="color:var(--accent); font-weight:bold;">₹399</div>
+                </div>
+            </div>
+            <button style="width: 100%; padding: 12px; border-radius: 8px; background: var(--accent); color: white; font-weight: 600; border: none; cursor: pointer;" onclick="closeScanner(); showToast('Added to Bag!')">Add to Bag</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- REALTIME MEASUREMENT SYNC LOGIC ---
+    // Your Google Apps Script Web App URL
+    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEP_eDb--jlfDJA8iUHGL9l7-sgPEGqrALio_nryk/exec";
+    
+    function fetchMeasurementsInBackground() {
+        const cacheBuster = `${APP_SCRIPT_URL}?t=${new Date().getTime()}`;
+        fetch(cacheBuster)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length > 0) {
+                localStorage.setItem('zudio_cloud_measurements', JSON.stringify(data));
+                document.getElementById('measurement-sync-badge').style.display = 'inline-block';
+            }
+        })
+        .catch(err => console.log("Silent cloud fetch failed."));
+    }
+
+    // --- BAG BADGE LOGIC (FIXED) ---
+    function updateBadge() {
+        let cart = JSON.parse(localStorage.getItem('zudio_cart')) || [];
+        const badge = document.getElementById('cart-badge');
+        if(badge) {
+            badge.innerText = cart.length;
+            badge.style.display = cart.length > 0 ? 'block' : 'none';
+        }
+    }
+
+    // --- USER DATA LOGIC ---
+    function loadUserData() {
+        let name = localStorage.getItem('zudio_name') || "Saket Janghel";
+        let mobile = localStorage.getItem('zudio_mobile') || "+91 9876543210";
+        let coins = localStorage.getItem('zudio_coins');
+        
+        if (coins === null) {
+            coins = 500;
+            localStorage.setItem('zudio_coins', coins);
+        }
+
+        document.getElementById('display-name').innerText = name;
+        document.getElementById('name-input').value = name;
+        document.getElementById('display-phone').innerText = mobile;
+        document.getElementById('display-coins').innerText = `${coins} Z-Coins`;
+        
+        // Update Badge on Load
+        updateBadge();
+        
+        // Trigger background sync for measurements
+        fetchMeasurementsInBackground();
+    }
+
+    // --- EDIT NAME LOGIC ---
+    function editName() {
+        document.getElementById('display-name').style.display = 'none';
+        document.getElementById('edit-btn').style.display = 'none';
+        let input = document.getElementById('name-input');
+        input.style.display = 'inline-block';
+        input.focus();
+    }
+
+    function saveName() {
+        let input = document.getElementById('name-input');
+        let newName = input.value.trim();
+        
+        if(newName !== "") {
+            localStorage.setItem('zudio_name', newName);
+            document.getElementById('display-name').innerText = newName;
+            showToast("Name Updated!");
+        } else {
+            input.value = document.getElementById('display-name').innerText;
+        }
+        
+        input.style.display = 'none';
+        document.getElementById('display-name').style.display = 'inline-block';
+        document.getElementById('edit-btn').style.display = 'inline-block';
+    }
+
+    function handleEnter(e) {
+        if(e.key === 'Enter') saveName();
+    }
+
+    // --- STORE LOCATOR LOGIC ---
+    function searchCustomLocation() {
+        const area = document.getElementById('locator-input').value.trim();
+        if (area === "") return showToast("Enter a city first!", "#ff4b2b");
+        const query = encodeURIComponent(`Zudio in ${area}`);
+        window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    }
+
+    // --- REAL CAMERA SCANNER LOGIC ---
+    let videoStream = null;
+    let scanTimeout;
+
+    async function openScanner() {
+        document.getElementById('scanner-overlay').classList.add('open');
+        document.getElementById('scan-result').style.display = 'none';
+        const videoElement = document.getElementById('camera-feed');
+        
+        try {
+            // Request Back Camera Access
+            videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            videoElement.srcObject = videoStream;
+            
+            // Simulating successful scan after 3 seconds of camera being open
+            scanTimeout = setTimeout(() => {
+                document.getElementById('scan-result').style.display = 'flex';
+            }, 3000);
+            
+        } catch (err) {
+            console.error("Camera access denied or not available", err);
+            showToast("Camera access required for Scan & Go.", "#ff4b2b");
+            closeScanner();
+        }
+    }
+    
+    function closeScanner() {
+        document.getElementById('scanner-overlay').classList.remove('open');
+        clearTimeout(scanTimeout);
+        
+        // Stop the camera completely to save battery
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+        }
+    }
+
+    // --- TOAST UI ---
+    function showToast(msg, color = '#34c759') {
+        const t = document.getElementById('toast'); 
+        t.innerText = msg;
+        t.style.background = color;
+        t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 2500);
+    }
+
+    // --- LOGOUT LOGIC ---
+    function logout() {
+        if(confirm("Are you sure you want to log out?")) {
+            localStorage.removeItem('zudio_name');
+            localStorage.removeItem('zudio_mobile');
+            window.location.href = 'index.html';
+        }
+    }
+
+    window.onload = loadUserData;
+</script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zudio - Fashion App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --bg-dark: #0f1014; --text-light: #ffffff; --text-muted: #8e8e93; --card-bg: #1c1d22; --accent: #ff416c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-dark); color: var(--text-light); display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        
+        /* HEADER */
+        .global-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--bg-dark); z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        
+        /* WHITE ZUDIO LOGO */
+        .logo-sec { display: flex; align-items: center; cursor: pointer; }
+        .logo-sec img { height: 26px; object-fit: contain; filter: brightness(0) invert(1); /* Makes the logo pure white */ }
+        
+        .header-icons { display: flex; gap: 20px; font-size: 20px; color: white; align-items: center; }
+        
+        /* PROFESSIONAL SEARCH OVERLAY */
+        .search-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 50; transform: translateY(-100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+        .search-overlay.active { transform: translateY(0); }
+        .search-header { display: flex; align-items: center; padding: 15px 20px; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .search-header i { font-size: 20px; color: var(--text-light); cursor: pointer; }
+        .search-input-wrapper { flex: 1; display: flex; align-items: center; background: var(--card-bg); border-radius: 8px; padding: 0 15px; border: 1px solid #333; transition: 0.3s; }
+        .search-input-wrapper:focus-within { border-color: var(--accent); }
+        .search-input-wrapper input { flex: 1; padding: 12px 10px; background: transparent; border: none; color: white; outline: none; font-size: 14px; }
+        .search-input-wrapper i { color: var(--text-muted); font-size: 14px; }
+        .search-results-area { flex: 1; overflow-y: auto; padding: 20px 0; }
+
+        /* MYNTRA STYLE TOP NAV */
+        .myntra-nav { background: var(--bg-dark); padding: 15px 20px 5px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 10; }
+        .nav-tabs-left { display: flex; gap: 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        .m-tab { padding-bottom: 5px; cursor: pointer; position: relative; transition: 0.2s; letter-spacing: 0.5px; }
+        .m-tab.active { color: white; }
+        .m-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--accent); border-radius: 5px 5px 0 0; }
+        
+        .cat-grid-btn { background: #2c2c2e; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; font-size: 16px; border: 1px solid #444; transition: 0.2s; }
+        .cat-grid-btn:active { transform: scale(0.9); background: #444; }
+
+        /* HORIZONTAL CATEGORY SCROLL */
+        .horizontal-categories { display: flex; overflow-x: auto; gap: 18px; padding: 15px 20px; scrollbar-width: none; background: var(--bg-dark); border-bottom: 5px solid #141519; }
+        .h-cat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; min-width: 65px; text-decoration: none; color: inherit; }
+        .h-cat-item img { width: 60px; height: 60px; border-radius: 16px; object-fit: cover; background: #2c2c2e; padding: 2px; transition: 0.2s; border: 2px solid transparent; }
+        .h-cat-item span { font-size: 11px; font-weight: 500; color: var(--text-muted); transition: 0.2s; }
+        .h-cat-item:active img { border-color: var(--accent); transform: scale(0.95); }
+
+        /* PAGES */
+        .page { display: none; flex: 1; overflow-y: auto; padding-bottom: 100px; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .hero-banner { height: 180px; background: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800') center/cover; margin: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .section-title { padding: 10px 20px 15px; font-size: 16px; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; }
+        .badge-new { background: linear-gradient(90deg, #ff416c, #ff4b2b); color: white; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(255,65,108,0.4); }
+        
+        /* PRODUCTS GRID */
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px 20px; }
+        .product-card { background: var(--card-bg); border-radius: 12px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .product-img { width: 100%; height: 210px; object-fit: cover; }
+        .heart-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border: none; border-radius: 50%; width: 32px; height: 32px; color: white; z-index: 2; transition: 0.2s; cursor: pointer; }
+        .heart-btn.liked i { color: var(--accent); }
+        .product-info { padding: 12px; }
+        .brand { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; }
+        .title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 4px 0 6px; }
+        .price { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+        .mrp { text-decoration: line-through; color: var(--text-muted); font-size: 11px; font-weight: 400; }
+        .add-btn { width: 100%; padding: 8px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px; transition: 0.2s; }
+        .add-btn:active { background: white; color: black; }
+        
+        /* BOTTOM NAV */
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; background: rgba(15, 16, 20, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 12px 0 15px; border-top: 1px solid #222; z-index: 100; }
+        .nav-item { color: var(--text-muted); text-align: center; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; }
+        .nav-item i { font-size: 20px; transition: 0.2s; }
+        .nav-item span { font-size: 10px; font-weight: 500; }
+        .nav-item.active { color: white; }
+        .nav-item.active i { color: var(--accent); transform: scale(1.1); }
+        .badge { position: absolute; top: -5px; right: 12px; background: var(--accent); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 700; border: 2px solid var(--bg-dark); }
+        
+        .empty-state { text-align:center; padding: 80px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 60px; margin-bottom: 20px; color: #2c2c2e; }
+        .toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #34c759; color: white; padding: 12px 25px; border-radius: 30px; font-size: 13px; font-weight: 600; display: none; z-index: 999; box-shadow: 0 5px 15px rgba(52,199,89,0.3); }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="toast" class="toast">Action Successful!</div>
+
+    <!-- GLOBAL HEADER -->
+    <div class="global-header">
+        <div class="logo-sec" onclick="window.location.reload()">
+            <!-- ZUDIO WHITE LOGO APPLIED HERE -->
+            <img src="https://cdn.cookielaw.org/logos/396992c7-1022-4c36-82e8-f180e6324448/01946822-220c-788e-9a15-66b2d48a2e52/596b0ce1-8b87-4246-8b63-fc4a9e1971d4/Zudio_Logo_Clear_(W)_1_x_(H)_5-09_crop.png" alt="Zudio Logo">
+        </div>
+        <div class="header-icons">
+            <!-- SEARCH BUTTON -->
+            <i class="fa-solid fa-magnifying-glass" style="font-size: 18px; cursor: pointer;" onclick="openSearch()"></i>
+            <i class="fa-regular fa-heart" style="font-size: 18px; cursor: pointer;" onclick="navigate('wishlist-page')"></i>
+        </div>
+    </div>
+
+    <!-- PROFESSIONAL SEARCH OVERLAY -->
+    <div class="search-overlay" id="search-overlay">
+        <div class="search-header">
+            <i class="fa-solid fa-arrow-left" onclick="closeSearch()"></i>
+            <div class="search-input-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="Search for T-shirts, Jeans, Kids..." onkeyup="handleSearch()">
+                <i class="fa-solid fa-xmark" style="cursor: pointer; display: none;" id="clear-search" onclick="clearSearchInput()"></i>
+            </div>
+        </div>
+        <div class="search-results-area">
+            <div class="product-grid" id="search-results">
+                <div style="grid-column: span 2; text-align:center; padding: 40px 20px; color: gray;">
+                    <i class="fa-solid fa-magnifying-glass" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i><br>
+                    Type something to find trending styles
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MYNTRA STYLE TABS & SCROLL CATEGORIES -->
+    <div id="home-navigation">
+        <div class="myntra-nav">
+            <div class="nav-tabs-left">
+                <div class="m-tab active" id="tab-all" onclick="switchCategory('all')">ALL</div>
+                <div class="m-tab" id="tab-mens" onclick="switchCategory('mens')">MEN</div>
+                <div class="m-tab" id="tab-womens" onclick="switchCategory('womens')">WOMEN</div>
+                <div class="m-tab" id="tab-kids" onclick="switchCategory('kids')">KIDS</div>
+            </div>
+            <div class="cat-grid-btn" onclick="window.location.href='categories.html'">
+                <i class="fa-solid fa-border-all"></i>
+            </div>
+        </div>
+
+        <div class="horizontal-categories">
+            <a href="fashion.html" class="h-cat-item">
+                <img src="https://images.pexels.com/photos/7969812/pexels-photo-7969812.jpeg" alt="Fashion">
+                <span>Fashion</span>
+            </a>
+            <a href="beauty.html" class="h-cat-item">
+                <img src="https://content.pexels.com/aigc-bundle/images/680755e8-1a70-45a9-afed-ef66f7720e35.jpg" alt="Beauty">
+                <span>Beauty</span>
+            </a>
+            <a href="homeliving.html" class="h-cat-item">
+                <img src="https://media.istockphoto.com/id/1213695547/photo/3d-rendering-of-an-elegant-bedroom.jpg?b=1&s=612x612&w=0&k=20&c=SXgsSUdhOAdzu_2uNyx_5Ee-u8o4_k5QPVL6sbuuA_0=" alt="Homeliving">
+                <span>Homeliving</span>
+            </a>
+            <a href="footwear.html" class="h-cat-item">
+                <img src="https://inc5shop.com/cdn/shop/files/601177ANTIQUE.jpg?v=1790427268&width=1500" alt="Footwear">
+                <span>Footwear</span>
+            </a>
+            <a href="accessories.html" class="h-cat-item">
+                <img src="https://images.pexels.com/photos/29244128/pexels-photo-29244128.jpeg" alt="Accessories">
+                <span>Accessories</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- HOME PAGE -->
+    <div id="home-page" class="page active">
+        <div class="hero-banner" id="hero-bg"></div>
+        <div class="section-title">
+            Trending Styles <span class="badge-new">100+ NEW DROPS</span>
+        </div>
+        <div class="product-grid" id="product-list"></div>
+    </div>
+
+    <!-- WISHLIST PAGE -->
+    <div id="wishlist-page" class="page">
+        <div class="section-title" style="margin-top: 15px;">My Wishlist <i class="fa-solid fa-heart" style="color:var(--accent); font-size:14px;"></i></div>
+        <div id="wishlist-empty" class="empty-state"><i class="fa-regular fa-heart"></i><p>Your wishlist is empty.</p></div>
+        <div class="product-grid" id="wishlist-list"></div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="navigate('home-page', this)">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='categories.html'">
+            <i class="fa-solid fa-border-all"></i>
+            <span>Categories</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='bag.html'">
+            <span class="badge" id="cart-badge" style="display:none;">0</span>
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span>Bag</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='profile.html'">
+            <i class="fa-regular fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // EXPANDED PRODUCT DATABASE (12 Premium Items with HQ Images)
+    const db = [
+        // Men's
+        { id: 1, cat: 'mens', title: 'Oversized Black Tee', price: '399', mrp: '799', img: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400' },
+        { id: 2, cat: 'mens', title: 'Urban Denim Jacket', price: '799', mrp: '1499', img: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400' },
+        { id: 3, cat: 'mens', title: 'Classic Sneakers', price: '699', mrp: '999', img: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=400' },
+        { id: 4, cat: 'mens', title: 'Streetwear Hoodie', price: '899', mrp: '1599', img: 'https://m.media-amazon.com/images/I/91OLnQz-+ML._AC_UL320_FMwebp_QL65_.jpg' },
+        
+        // Women's
+        { id: 5, cat: 'womens', title: 'Floral Maxi Dress', price: '499', mrp: '999', img: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400' },
+        { id: 6, cat: 'womens', title: 'Crop Top Y2K', price: '299', mrp: '599', img: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400' },
+        { id: 7, cat: 'womens', title: 'Wide Leg Jeans', price: '699', mrp: '1299', img: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400' },
+        { id: 8, cat: 'womens', title: 'Puffer Winter Jacket', price: '999', mrp: '1899', img: 'https://m.media-amazon.com/images/I/71L8uF+Z85L._SX679_.jpg' },
+
+        // Kids
+        { id: 9, cat: 'kids', title: 'Boys Graphic Tee', price: '199', mrp: '399', img: 'https://m.media-amazon.com/images/I/612KhvPWpjL._SX679_.jpg' },
+        { id: 10, cat: 'kids', title: 'Kids Ethnic Set', price: '499', mrp: '899', img: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400' },
+        { id: 11, cat: 'kids', title: 'Cute Pink Dress', price: '399', mrp: '699', img: 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=400' },
+        { id: 12, cat: 'kids', title: 'Kids Denim Overall', price: '599', mrp: '999', img: 'https://images.unsplash.com/photo-1604467794349-0b74285de7e7?w=400' }
+    ];
+
+    let cart = JSON.parse(localStorage.getItem('zudio_cart')) || [];
+    let wishlist = JSON.parse(localStorage.getItem('zudio_wishlist')) || [];
+    
+    function saveState() {
+        localStorage.setItem('zudio_cart', JSON.stringify(cart));
+        localStorage.setItem('zudio_wishlist', JSON.stringify(wishlist));
+        updateBadge();
+    }
+
+    function getCard(p) {
+        const isLiked = wishlist.some(item => item.id === p.id) ? 'liked' : '';
+        const heartIcon = isLiked ? 'fa-solid' : 'fa-regular';
+        return `
+            <div class="product-card">
+                <button class="heart-btn ${isLiked}" onclick="toggleHeart(${p.id}, this)"><i class="${heartIcon} fa-heart"></i></button>
+                <img src="${p.img}" class="product-img">
+                <div class="product-info">
+                    <div class="brand">ZUDIO</div>
+                    <div class="title">${p.title}</div>
+                    <div class="price">₹${p.price} <span class="mrp">₹${p.mrp}</span></div>
+                    <button class="add-btn" onclick="addToCart(${p.id})">ADD TO BAG</button>
+                </div>
+            </div>`;
+    }
+
+    function switchCategory(cat) {
+        document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('active'));
+        document.getElementById(`tab-${cat}`).classList.add('active');
+        
+        let filteredDb = cat === 'all' ? db : db.filter(x => x.cat === cat);
+        document.getElementById('product-list').innerHTML = filteredDb.map(getCard).join('');
+        
+        const bgUrl = cat === 'womens' ? 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800' :
+                      cat === 'kids' ? 'https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?w=800' :
+                      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800';
+        document.getElementById('hero-bg').style.backgroundImage = `url('${bgUrl}')`;
+    }
+
+    function navigate(pageId, navEl = null) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        
+        document.getElementById('home-navigation').style.display = (pageId === 'home-page') ? 'block' : 'none';
+        
+        if (navEl) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            navEl.classList.add('active');
+        }
+        if(pageId === 'wishlist-page') renderWishlist();
+    }
+
+    // PROFESSIONAL SEARCH LOGIC
+    function openSearch() {
+        const searchOverlay = document.getElementById('search-overlay');
+        searchOverlay.classList.add('active');
+        setTimeout(() => document.getElementById('search-input').focus(), 300); // Focus input smoothly
+    }
+
+    function closeSearch() {
+        document.getElementById('search-overlay').classList.remove('active');
+        clearSearchInput();
+    }
+
+    function clearSearchInput() {
+        document.getElementById('search-input').value = '';
+        document.getElementById('clear-search').style.display = 'none';
+        document.getElementById('search-results').innerHTML = `
+            <div style="grid-column: span 2; text-align:center; padding: 40px 20px; color: gray;">
+                <i class="fa-solid fa-magnifying-glass" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i><br>
+                Type something to find trending styles
+            </div>`;
+    }
+
+    function handleSearch() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const clearBtn = document.getElementById('clear-search');
+        const resContainer = document.getElementById('search-results');
+        
+        if(query.length > 0) {
+            clearBtn.style.display = 'block';
+            const results = db.filter(p => p.title.toLowerCase().includes(query) || p.cat.includes(query));
+            if(results.length > 0) {
+                resContainer.innerHTML = results.map(getCard).join('');
+            } else {
+                resContainer.innerHTML = '<div style="grid-column: span 2; text-align:center; padding: 40px 20px; color: gray;">No items found. Try searching "Jeans" or "Kids".</div>';
+            }
+        } else {
+            clearSearchInput();
+        }
+    }
+
+    // CART & WISHLIST LOGIC
+    function toggleHeart(id, btn) {
+        const p = db.find(x => x.id === id);
+        const idx = wishlist.findIndex(x => x.id === id);
+        if(idx > -1) { wishlist.splice(idx, 1); btn.classList.remove('liked'); btn.innerHTML = '<i class="fa-regular fa-heart"></i>'; }
+        else { wishlist.push(p); btn.classList.add('liked'); btn.innerHTML = '<i class="fa-solid fa-heart"></i>'; }
+        saveState();
+        if(document.getElementById('wishlist-page').classList.contains('active')) renderWishlist();
+    }
+
+    function addToCart(id) {
+        const p = db.find(x => x.id === id);
+        cart.push(p);
+        saveState();
+        showToast("Item Added to Bag");
+    }
+
+    function renderWishlist() {
+        document.getElementById('wishlist-list').innerHTML = wishlist.map(getCard).join('');
+        document.getElementById('wishlist-empty').style.display = wishlist.length ? 'none' : 'block';
+    }
+
+    function updateBadge() {
+        const b = document.getElementById('cart-badge');
+        b.innerText = cart.length; b.style.display = cart.length ? 'block' : 'none';
+    }
+
+    function showToast(msg, color = '#34c759') {
+        const t = document.getElementById('toast'); 
+        t.innerText = msg;
+        t.style.background = color;
+        t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 2500);
+    }
+
+    // Init App
+    switchCategory('all');
+    updateBadge();
+</script>
+</body>
+</html>

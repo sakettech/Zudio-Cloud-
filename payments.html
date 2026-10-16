@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Saved Payments - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; --text-muted: #8e8e93; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        
+        .header { padding: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; background: var(--bg-dark); z-index: 10; }
+        .header i { cursor: pointer; }
+        
+        .main-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
+        
+        /* Payment Cards */
+        .payment-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .payment-info { display: flex; align-items: center; gap: 15px; }
+        
+        /* White Background for Logos to pop on Dark Theme */
+        .pay-icon { width: 45px; height: 45px; background: #ffffff; border-radius: 10px; display: flex; justify-content: center; align-items: center; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .pay-icon img { width: 100%; height: 100%; object-fit: contain; }
+        
+        .pay-details h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; color: white; }
+        .pay-details p { font-size: 12px; color: var(--text-muted); }
+        
+        .remove-btn { color: #ff4b2b; font-size: 12px; font-weight: 600; cursor: pointer; padding: 5px; background: rgba(255,75,43,0.1); border-radius: 6px; transition: 0.2s; }
+        .remove-btn:active { transform: scale(0.9); background: #ff4b2b; color: white; }
+
+        .btn-add { width: 100%; padding: 15px; border-radius: 10px; border: 2px dashed #444; background: transparent; color: white; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; margin-bottom: 30px; transition: 0.2s; }
+        .btn-add:active { background: rgba(255,255,255,0.05); border-color: var(--accent); color: var(--accent); }
+
+        /* BOTTOM SHEET (ADD PAYMENT) */
+        .bottom-sheet { position: absolute; bottom: 0; width: 100%; background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 25px 20px; transform: translateY(100%); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 300; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); max-height: 85vh; overflow-y: auto; }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay { position: absolute; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); display: none; z-index: 299; }
+        
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        /* Tabs inside Bottom Sheet */
+        .pay-tabs { display: flex; gap: 15px; margin-bottom: 20px; }
+        .p-tab { flex: 1; text-align: center; padding: 10px; font-size: 13px; font-weight: 600; color: gray; border-bottom: 2px solid transparent; cursor: pointer; transition: 0.3s; }
+        .p-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        /* Form Inputs */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 14px; border-radius: 8px; background: var(--bg-dark); border: 1px solid #444; color: white; font-size: 14px; outline: none; transition: 0.2s; }
+        .input-group input:focus { border-color: var(--accent); }
+        
+        .btn-primary { width: 100%; padding: 15px; border-radius: 10px; background: var(--accent); color: white; font-weight: 600; border: none; font-size: 15px; cursor: pointer; margin-top: 10px; }
+        
+        .toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #34c759; color: white; padding: 12px 25px; border-radius: 30px; font-size: 13px; font-weight: 600; display: none; z-index: 999; box-shadow: 0 5px 15px rgba(52,199,89,0.3); }
+
+        .empty-state { text-align: center; color: gray; padding: 30px 0; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div id="app-container">
+    <div id="toast" class="toast">Payment Method Added!</div>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-left" onclick="window.location.href='profile.html'"></i> Saved Payments
+    </div>
+    
+    <div class="main-content">
+        <!-- UPI Section -->
+        <div class="section-title">Saved UPI IDs</div>
+        <div id="upi-list"></div>
+
+        <!-- Cards Section -->
+        <div class="section-title" style="margin-top: 25px;">Credit & Debit Cards</div>
+        <div id="card-list"></div>
+
+        <button class="btn-add" onclick="openAddPaymentSheet()">
+            <i class="fa-solid fa-plus"></i> Add New Payment Method
+        </button>
+    </div>
+
+    <!-- BOTTOM SHEET: ADD PAYMENT -->
+    <div class="overlay" id="overlay" onclick="closeSheet()"></div>
+    <div class="bottom-sheet" id="payment-sheet">
+        <div class="sheet-header">
+            <span>Add New Payment</span>
+            <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeSheet()"></i>
+        </div>
+        
+        <div class="pay-tabs">
+            <div class="p-tab active" id="tab-upi" onclick="switchForm('upi')">Add UPI</div>
+            <div class="p-tab" id="tab-card" onclick="switchForm('card')">Add Card</div>
+        </div>
+        
+        <!-- UPI Form -->
+        <div id="form-upi" style="display: block;">
+            <div class="input-group">
+                <label>Enter UPI ID (VPA)</label>
+                <input type="text" id="upi-id" placeholder="e.g. rahul@okaxis or 9876543210@ybl">
+            </div>
+            <button class="btn-primary" onclick="saveUPI()">Save & Verify UPI</button>
+        </div>
+        
+        <!-- Card Form -->
+        <div id="form-card" style="display: none;">
+            <div class="input-group">
+                <label>Card Number</label>
+                <input type="number" id="card-num" placeholder="XXXX XXXX XXXX XXXX">
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Expiry (MM/YY)</label>
+                    <input type="text" id="card-exp" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>CVV</label>
+                    <input type="password" id="card-cvv" placeholder="•••" maxlength="3">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Name on Card</label>
+                <input type="text" id="card-name" placeholder="John Doe">
+            </div>
+            <button class="btn-primary" onclick="saveCard()">Securely Save Card</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Premium Logos (White background handles Dark Mode visibility)
+    const LOGOS = {
+        gpay: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/512px-Google_Pay_Logo.svg.png",
+        phonepe: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/512px-PhonePe_Logo.svg.png",
+        hdfc: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/HDFC_Bank_Logo.svg/512px-HDFC_Bank_Logo.svg.png",
+        sbi: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/SBI-logo.svg/512px-SBI-logo.svg.png",
+        generic_upi: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/512px-UPI-Logo-vector.svg.png",
+        generic_card: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/512px-Visa_Inc._logo.svg.png"
+    };
+
+    // Load from LocalStorage or inject Default Data
+    let savedPayments = JSON.parse(localStorage.getItem('zudio_payments'));
+
+    if (!savedPayments || savedPayments.length === 0) {
+        savedPayments = [
+            { type: 'upi', name: 'Google Pay', detail: 'rahul@okaxis', logo: LOGOS.gpay },
+            { type: 'upi', name: 'PhonePe', detail: '9876543210@ybl', logo: LOGOS.phonepe },
+            { type: 'card', name: 'HDFC Bank Visa Card', detail: '**** **** **** 4589', logo: LOGOS.hdfc },
+            { type: 'card', name: 'SBI Mastercard', detail: '**** **** **** 1024', logo: LOGOS.sbi }
+        ];
+        saveToStorage();
+    }
+
+    function saveToStorage() {
+        localStorage.setItem('zudio_payments', JSON.stringify(savedPayments));
+    }
+
+    // Render logic separating UPI and Cards
+    function renderPayments() {
+        const upiList = document.getElementById('upi-list');
+        const cardList = document.getElementById('card-list');
+        
+        let upiHTML = '';
+        let cardHTML = '';
+
+        savedPayments.forEach((pay, index) => {
+            let cardElement = `
+                <div class="payment-card">
+                    <div class="payment-info">
+                        <div class="pay-icon"><img src="${pay.logo}" alt="${pay.name}"></div>
+                        <div class="pay-details">
+                            <h4>${pay.name}</h4>
+                            <p>${pay.detail}</p>
+                        </div>
+                    </div>
+                    <div class="remove-btn" onclick="deletePayment(${index})">Remove</div>
+                </div>
+            `;
+            
+            if(pay.type === 'upi') upiHTML += cardElement;
+            else cardHTML += cardElement;
+        });
+
+        upiList.innerHTML = upiHTML || '<div class="empty-state">No saved UPI IDs found.</div>';
+        cardList.innerHTML = cardHTML || '<div class="empty-state">No saved Cards found.</div>';
+    }
+
+    // Delete Payment
+    function deletePayment(index) {
+        if(confirm("Are you sure you want to remove this payment method?")) {
+            savedPayments.splice(index, 1);
+            saveToStorage();
+            renderPayments();
+        }
+    }
+
+    // --- BOTTOM SHEET LOGIC ---
+    function openAddPaymentSheet() {
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('payment-sheet').classList.add('open');
+        
+        // Reset forms
+        document.getElementById('upi-id').value = '';
+        document.getElementById('card-num').value = '';
+        document.getElementById('card-exp').value = '';
+        document.getElementById('card-cvv').value = '';
+        document.getElementById('card-name').value = '';
+    }
+
+    function closeSheet() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('payment-sheet').classList.remove('open');
+    }
+
+    function switchForm(type) {
+        document.getElementById('tab-upi').classList.remove('active');
+        document.getElementById('tab-card').classList.remove('active');
+        document.getElementById(`tab-${type}`).classList.add('active');
+
+        document.getElementById('form-upi').style.display = type === 'upi' ? 'block' : 'none';
+        document.getElementById('form-card').style.display = type === 'card' ? 'block' : 'none';
+    }
+
+    // --- SAVE NEW METHODS ---
+    function saveUPI() {
+        const upiId = document.getElementById('upi-id').value.trim();
+        if(!upiId || !upiId.includes('@')) return alert("Enter a valid UPI ID");
+
+        let name = "New UPI";
+        let logo = LOGOS.generic_upi;
+
+        // Auto-detect brand based on VPA extension
+        if(upiId.includes('@okaxis') || upiId.includes('@okhdfcbank')) { name = "Google Pay"; logo = LOGOS.gpay; }
+        else if(upiId.includes('@ybl') || upiId.includes('@ibl')) { name = "PhonePe"; logo = LOGOS.phonepe; }
+        else if(upiId.includes('@paytm')) { name = "Paytm"; logo = LOGOS.generic_upi; }
+
+        savedPayments.push({ type: 'upi', name: name, detail: upiId, logo: logo });
+        finalizeSave("UPI ID Saved Successfully!");
+    }
+
+    function saveCard() {
+        const num = document.getElementById('card-num').value.trim();
+        const name = document.getElementById('card-name').value.trim();
+        if(num.length < 15) return alert("Enter a valid Card Number");
+        if(!name) return alert("Enter Name on Card");
+
+        const last4 = num.slice(-4);
+        
+        // Auto-detect Bank/Type based on first digit mock logic
+        let brandName = "Bank Card";
+        let logo = LOGOS.generic_card;
+
+        if(num.startsWith('4')) { brandName = "Visa Card"; }
+        else if(num.startsWith('5')) { brandName = "Mastercard"; logo = LOGOS.sbi; } // Demo fallback
+        
+        savedPayments.push({ type: 'card', name: `${name}'s ${brandName}`, detail: `**** **** **** ${last4}`, logo: logo });
+        finalizeSave("Card Saved Successfully!");
+    }
+
+    function finalizeSave(msg) {
+        saveToStorage();
+        renderPayments();
+        closeSheet();
+        
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 2500);
+    }
+
+    // Initialize
+    renderPayments();
+</script>
+</body>
+</html>
+```<ElicitationsGroup></ElicitationsGroup>

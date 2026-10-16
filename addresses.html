@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Your Addresses - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; --text-muted: #8e8e93; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8); position: relative; }
+        
+        .header { padding: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; background: var(--bg-dark); z-index: 10; }
+        .header i { cursor: pointer; }
+        
+        .main-content { flex: 1; overflow-y: auto; padding: 15px; }
+        
+        /* Add New Address Button (Amazon Style) */
+        .add-new-box { border: 2px dashed #444; border-radius: 12px; padding: 20px; text-align: center; color: var(--text-muted); font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .add-new-box:active { background: rgba(255,255,255,0.05); border-color: var(--accent); color: white; }
+        .add-new-box i { font-size: 20px; color: var(--accent); }
+
+        /* Address Cards */
+        .address-card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid #333; position: relative; margin-bottom: 15px; }
+        .address-card.default { border-color: var(--accent); }
+        .tag { display: inline-block; background: rgba(255,65,108,0.1); color: var(--accent); font-size: 10px; font-weight: bold; padding: 3px 10px; border-radius: 10px; margin-bottom: 10px; }
+        .address-card h3 { font-size: 15px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
+        .address-card p { color: #d1d1d6; font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
+        
+        .action-links { display: flex; gap: 20px; border-top: 1px solid #333; padding-top: 15px; }
+        .action-links span { font-size: 13px; color: var(--accent); font-weight: 600; cursor: pointer; }
+        
+        /* FORM BOTTOM SHEET (Amazon Style Fields) */
+        .bottom-sheet { position: absolute; bottom: 0; width: 100%; height: 85vh; background: var(--card-bg); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 300; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); }
+        .bottom-sheet.open { transform: translateY(0); }
+        .sheet-header { padding: 20px; font-size: 18px; font-weight: 600; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .sheet-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        .overlay { position: absolute; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 299; backdrop-filter: blur(2px); }
+        
+        /* Form Inputs */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 14px; border-radius: 8px; background: var(--bg-dark); border: 1px solid #444; color: white; font-size: 14px; outline: none; transition: 0.2s; }
+        .form-group input:focus { border-color: var(--accent); }
+        .row { display: flex; gap: 15px; }
+        .row .form-group { flex: 1; }
+        
+        .btn-primary { width: 100%; padding: 15px; border-radius: 10px; background: var(--accent); color: white; font-weight: bold; border: none; font-size: 15px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div class="header">
+        <i class="fa-solid fa-arrow-left" onclick="window.location.href='profile.html'"></i> 
+        Your Addresses
+    </div>
+    
+    <div class="main-content">
+        <!-- Add New Box -->
+        <div class="add-new-box" onclick="openAddressForm(null)">
+            <i class="fa-solid fa-plus"></i> Add a new address
+        </div>
+
+        <!-- Saved Addresses Container -->
+        <div id="address-list">
+            <!-- Addresses injected via JS -->
+        </div>
+    </div>
+
+    <!-- FORM OVERLAY -->
+    <div class="overlay" id="overlay" onclick="closeAddressForm()"></div>
+    <div class="bottom-sheet" id="address-form-sheet">
+        <div class="sheet-header">
+            <span id="form-title">Add new address</span>
+            <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeAddressForm()"></i>
+        </div>
+        <div class="sheet-content">
+            <form id="addressForm" onsubmit="saveAddress(event)">
+                <input type="hidden" id="edit-index" value="">
+                
+                <div class="form-group">
+                    <label>Full Name (First and Last name)</label>
+                    <input type="text" id="a-name" required placeholder="e.g. Rahul Sharma">
+                </div>
+                
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="a-mobile" required placeholder="10-digit mobile number" maxlength="10">
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label>Pincode</label>
+                        <input type="number" id="a-pincode" required placeholder="6 digits">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Flat, House no., Building, Company, Apartment</label>
+                    <input type="text" id="a-house" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Area, Street, Sector, Village</label>
+                    <input type="text" id="a-area" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Landmark (Optional)</label>
+                    <input type="text" id="a-landmark" placeholder="e.g. near Apollo Hospital">
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label>Town/City</label>
+                        <input type="text" id="a-city" required>
+                    </div>
+                    <div class="form-group">
+                        <label>State</label>
+                        <input type="text" id="a-state" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Address Type</label>
+                    <div style="display:flex; gap:15px; margin-top:5px;">
+                        <label style="color:white; display:flex; align-items:center; gap:5px; font-size:14px;"><input type="radio" name="a-type" value="HOME" checked> Home</label>
+                        <label style="color:white; display:flex; align-items:center; gap:5px; font-size:14px;"><input type="radio" name="a-type" value="OFFICE"> Office</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary">Save Address</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize default data if local storage is empty
+    let addresses = JSON.parse(localStorage.getItem('zudio_saved_addresses'));
+    
+    if (!addresses || addresses.length === 0) {
+        addresses = [
+            {
+                name: "Rahul Developer",
+                mobile: "9876543210",
+                pincode: "248001",
+                house: "Flat 402, Skyline Apartments",
+                area: "Rajpur Road",
+                landmark: "Near Clock Tower",
+                city: "Dehradun",
+                state: "Uttarakhand",
+                type: "HOME"
+            }
+        ];
+        saveToLocalStorage();
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('zudio_saved_addresses', JSON.stringify(addresses));
+    }
+
+    // Render Addresses to the UI
+    function renderAddresses() {
+        const list = document.getElementById('address-list');
+        list.innerHTML = "";
+        
+        addresses.forEach((addr, index) => {
+            const isDefault = index === 0 ? "default" : "";
+            const defaultText = index === 0 ? `<span style="font-size:11px; color:gray; font-weight:normal;">(Default)</span>` : "";
+            
+            list.innerHTML += `
+                <div class="address-card ${isDefault}">
+                    <div class="tag">${addr.type}</div>
+                    <h3>${addr.name} ${defaultText}</h3>
+                    <p>
+                        ${addr.house}, ${addr.area}<br>
+                        ${addr.landmark ? addr.landmark + ',<br>' : ''}
+                        ${addr.city}, ${addr.state} ${addr.pincode}<br>
+                        <span style="color:white; font-weight:500; display:inline-block; margin-top:5px;">Phone number: +91 ${addr.mobile}</span>
+                    </p>
+                    <div class="action-links">
+                        <span onclick="openAddressForm(${index})">Edit</span>
+                        <span style="color:#8e8e93;" onclick="deleteAddress(${index})">Remove</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Open Form for Add or Edit
+    function openAddressForm(index) {
+        const form = document.getElementById('addressForm');
+        form.reset(); // Clear form
+        
+        if (index !== null) {
+            // Edit Mode
+            document.getElementById('form-title').innerText = "Edit address";
+            document.getElementById('edit-index').value = index;
+            
+            const addr = addresses[index];
+            document.getElementById('a-name').value = addr.name;
+            document.getElementById('a-mobile').value = addr.mobile;
+            document.getElementById('a-pincode').value = addr.pincode;
+            document.getElementById('a-house').value = addr.house;
+            document.getElementById('a-area').value = addr.area;
+            document.getElementById('a-landmark').value = addr.landmark;
+            document.getElementById('a-city').value = addr.city;
+            document.getElementById('a-state').value = addr.state;
+            document.querySelector(`input[name="a-type"][value="${addr.type}"]`).checked = true;
+        } else {
+            // Add Mode
+            document.getElementById('form-title').innerText = "Add new address";
+            document.getElementById('edit-index').value = "";
+        }
+
+        document.getElementById('address-form-sheet').classList.add('open');
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    // Close Form
+    function closeAddressForm() {
+        document.getElementById('address-form-sheet').classList.remove('open');
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    // Handle Save / Submit
+    function saveAddress(e) {
+        e.preventDefault();
+        
+        const newAddress = {
+            name: document.getElementById('a-name').value,
+            mobile: document.getElementById('a-mobile').value,
+            pincode: document.getElementById('a-pincode').value,
+            house: document.getElementById('a-house').value,
+            area: document.getElementById('a-area').value,
+            landmark: document.getElementById('a-landmark').value,
+            city: document.getElementById('a-city').value,
+            state: document.getElementById('a-state').value,
+            type: document.querySelector('input[name="a-type"]:checked').value
+        };
+
+        const editIndex = document.getElementById('edit-index').value;
+        
+        if (editIndex !== "") {
+            // Update existing
+            addresses[parseInt(editIndex)] = newAddress;
+        } else {
+            // Add new (Push to top so it becomes default/first)
+            addresses.unshift(newAddress);
+        }
+
+        saveToLocalStorage();
+        renderAddresses();
+        closeAddressForm();
+    }
+
+    // Delete Address
+    function deleteAddress(index) {
+        if(confirm("Are you sure you want to remove this address?")) {
+            addresses.splice(index, 1);
+            saveToLocalStorage();
+            renderAddresses();
+        }
+    }
+
+    // Initial Render
+    renderAddresses();
+</script>
+</body>
+</html>

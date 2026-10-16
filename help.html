@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Help Center - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; --text-muted: #8e8e93; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        
+        .header { padding: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; }
+        .header i { cursor: pointer; }
+        
+        .main-content { flex: 1; overflow-y: auto; padding: 20px; }
+
+        /* Search Support */
+        .search-box { display: flex; align-items: center; background: var(--card-bg); border-radius: 10px; padding: 0 15px; border: 1px solid #333; margin-bottom: 25px; }
+        .search-box input { width: 100%; padding: 15px 10px; background: transparent; border: none; color: white; outline: none; font-size: 14px; }
+        .search-box i { color: var(--text-muted); }
+
+        .section-title { font-size: 15px; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px; }
+
+        /* Quick Topics Grid */
+        .topics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .topic-card { background: var(--card-bg); padding: 20px 15px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; }
+        .topic-card:active { transform: scale(0.95); background: rgba(255,65,108,0.1); border-color: var(--accent); }
+        .topic-card i { font-size: 24px; color: var(--accent); margin-bottom: 10px; }
+        .topic-card h4 { font-size: 12px; font-weight: 500; }
+
+        /* FAQ List */
+        .faq-list { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px; }
+        .faq-item { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-item i { color: var(--text-muted); }
+
+        /* Contact Support */
+        .contact-box { background: linear-gradient(135deg, #1f4294, #2a75d3); border-radius: 15px; padding: 20px; position: relative; overflow: hidden; margin-bottom: 20px; }
+        .contact-box h3 { font-size: 16px; margin-bottom: 5px; }
+        .contact-box p { font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 15px; }
+        .contact-methods { display: flex; gap: 10px; }
+        .c-btn { flex: 1; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; text-align: center; font-size: 12px; font-weight: 600; cursor: pointer; backdrop-filter: blur(5px); }
+        .c-btn:active { background: white; color: black; }
+        
+    </style>
+</head>
+<body>
+<div id="app-container">
+    <div class="header">
+        <i class="fa-solid fa-arrow-left" onclick="window.location.href='profile.html'"></i> Help Center
+    </div>
+    
+    <div class="main-content">
+        
+        <!-- Search Box -->
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search for tracking, refunds, etc.">
+        </div>
+
+        <div class="section-title">What do you need help with?</div>
+        
+        <!-- Topics Grid -->
+        <div class="topics-grid">
+            <div class="topic-card" onclick="window.location.href='orders.html'">
+                <i class="fa-solid fa-box-open"></i>
+                <h4>Track Order</h4>
+            </div>
+            <div class="topic-card" onclick="alert('Redirecting to Returns portal...')">
+                <i class="fa-solid fa-arrow-rotate-left"></i>
+                <h4>Returns & Refunds</h4>
+            </div>
+            <div class="topic-card" onclick="alert('Zudio Coins & Membership Rules')">
+                <i class="fa-solid fa-coins"></i>
+                <h4>Zudio Coins</h4>
+            </div>
+            <div class="topic-card" onclick="window.location.href='payments.html'">
+                <i class="fa-solid fa-credit-card"></i>
+                <h4>Payment Issues</h4>
+            </div>
+        </div>
+
+        <div class="section-title">Frequently Asked Questions</div>
+        
+        <!-- FAQ List -->
+        <div class="faq-list">
+            <div class="faq-item" onclick="alert('You can return items within 15 days of delivery.')">
+                What is the return policy? <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="faq-item" onclick="alert('Refunds are processed within 5-7 business days after item pickup.')">
+                When will I get my refund? <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="faq-item" onclick="alert('Yes, cash on delivery is available for orders below ₹5000.')">
+                Is Cash on Delivery available? <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="faq-item" onclick="alert('You can cancel your order from the Order History page before it ships.')">
+                How do I cancel my order? <i class="fa-solid fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <!-- Contact Support -->
+        <div class="contact-box">
+            <h3>Still need help?</h3>
+            <p>Our support team is available 24/7 to assist you.</p>
+            <div class="contact-methods">
+                <div class="c-btn" onclick="alert('Connecting to Live Agent...')"><i class="fa-solid fa-comments"></i> Chat</div>
+                <div class="c-btn" onclick="window.location.href='tel:+919876543210'"><i class="fa-solid fa-phone"></i> Call</div>
+                <div class="c-btn" onclick="window.location.href='mailto:support@zudioapp.com'"><i class="fa-solid fa-envelope"></i> Email</div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+</body>
+</html>
+```<ElicitationsGroup></ElicitationsGroup>

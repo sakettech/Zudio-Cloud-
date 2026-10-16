@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Orders - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        
+        .header { padding: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; }
+        .header i { cursor: pointer; }
+        
+        /* ORDERS LIST */
+        .orders-list { flex: 1; overflow-y: auto; padding: 20px; }
+        .order-card { background: var(--card-bg); border-radius: 15px; padding: 18px; margin-bottom: 15px; border: 1px solid #333; position: relative; }
+        .order-top { display: flex; justify-content: space-between; border-bottom: 1px dashed #444; padding-bottom: 12px; margin-bottom: 12px; font-size: 12px; color: gray; align-items: center; }
+        .order-status { font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 6px; }
+        
+        /* Status Colors */
+        .status-Processing { background: rgba(255,165,0,0.1); color: orange; border: 1px solid rgba(255,165,0,0.3); }
+        .status-Delivered { background: rgba(52,199,89,0.1); color: #34c759; border: 1px solid rgba(52,199,89,0.3); }
+        
+        .order-details { display: flex; gap: 15px; align-items: center; margin-bottom: 12px; }
+        .order-details img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #333; }
+        .item-info { flex: 1; }
+        .item-info h4 { font-weight: 600; font-size: 13px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .item-info p { font-size: 12px; color: gray; }
+        
+        .order-total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #333; margin-top: 10px; font-size: 14px; }
+        .payment-status { font-size: 11px; color: #34c759; display: flex; align-items: center; gap: 5px; font-weight: 600; }
+        
+        .btn-bill { width: 100%; margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid #444; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-bill:active { background: white; color: black; }
+
+        .empty-state { text-align:center; padding: 80px 20px; color: gray; }
+        .empty-state i { font-size: 50px; margin-bottom: 15px; color: #333; }
+
+        /* ======================================================== */
+        /* DIGITAL BILL / INVOICE MODAL (REALISTIC RECEIPT STYLE)   */
+        /* ======================================================== */
+        .bill-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 500; display: none; justify-content: center; align-items: center; padding: 20px; opacity: 0; transition: opacity 0.3s ease; }
+        .bill-overlay.show { display: flex; opacity: 1; animation: popIn 0.3s ease-out; }
+        @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .receipt-paper { background: #ffffff; color: #000000; width: 100%; max-width: 350px; border-radius: 12px; padding: 25px 20px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: 'Courier New', Courier, monospace; /* Monospace for receipt feel */ }
+        .receipt-close { position: absolute; top: -15px; right: -15px; background: var(--accent); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        .r-header { text-align: center; margin-bottom: 20px; border-bottom: 2px dashed #ccc; padding-bottom: 15px; }
+        .r-logo { font-size: 24px; font-weight: 800; font-family: 'Poppins', sans-serif; letter-spacing: 2px; margin-bottom: 5px; }
+        .r-title { font-size: 11px; color: #555; letter-spacing: 1px; }
+
+        .r-info { font-size: 12px; line-height: 1.6; margin-bottom: 20px; color: #333; }
+        .r-info div { display: flex; justify-content: space-between; }
+        .r-info strong { font-weight: 700; color: #000; }
+
+        .r-table { width: 100%; font-size: 12px; margin-bottom: 20px; border-collapse: collapse; }
+        .r-table th { border-bottom: 1px dashed #ccc; padding-bottom: 8px; text-align: left; font-weight: 600; color: #555; }
+        .r-table td { padding: 10px 0; border-bottom: 1px dashed #eee; vertical-align: top; }
+        .r-item-name { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; display: block; }
+        .r-item-id { font-size: 10px; color: #888; }
+        
+        .r-totals { border-top: 2px dashed #ccc; padding-top: 15px; margin-bottom: 20px; }
+        .r-total-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #555; }
+        .r-grand-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: #000; margin-top: 10px; }
+
+        .r-barcode { text-align: center; margin-top: 25px; padding-top: 20px; border-top: 2px dashed #ccc; }
+        .r-barcode img { height: 60px; width: 100%; max-width: 250px; object-fit: contain; }
+        .r-barcode p { font-size: 11px; margin-top: 8px; letter-spacing: 2px; font-weight: bold; }
+        
+        .r-footer { text-align: center; font-size: 10px; color: #888; margin-top: 15px; }
+    </style>
+</head>
+<body>
+<div id="app-container">
+    <div class="header">
+        <i class="fa-solid fa-arrow-left" onclick="window.location.href='profile.html'"></i> Order History
+    </div>
+    
+    <div class="orders-list" id="orders-container">
+        <!-- Orders injected here -->
+    </div>
+
+    <!-- DIGITAL BILL MODAL -->
+    <div id="bill-modal" class="bill-overlay">
+        <div class="receipt-paper">
+            <div class="receipt-close" onclick="closeBill()"><i class="fa-solid fa-xmark"></i></div>
+            
+            <div class="r-header">
+                <div class="r-logo">ZUDIO</div>
+                <div class="r-title">ORIGINAL TAX INVOICE</div>
+            </div>
+            
+            <div class="r-info">
+                <div><span>Bill No:</span> <strong id="b-id">ZD-000000</strong></div>
+                <div><span>Date:</span> <strong id="b-date">DD/MM/YYYY</strong></div>
+                <div><span>Time:</span> <strong id="b-time">00:00 AM</strong></div>
+                <div><span>Payment:</span> <strong style="color: #00b894;">Razorpay (Paid)</strong></div>
+            </div>
+            
+            <table class="r-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70%;">Item Description</th>
+                        <th style="width: 30%; text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="b-items">
+                    <!-- Items injected here -->
+                </tbody>
+            </table>
+            
+            <div class="r-totals">
+                <div class="r-total-row"><span>Subtotal</span> <span id="b-sub">₹0</span></div>
+                <div class="r-total-row"><span>GST (5%)</span> <span id="b-tax">₹0</span></div>
+                <div class="r-grand-total"><span>TOTAL</span> <span id="b-total">₹0</span></div>
+            </div>
+            
+            <div class="r-barcode">
+                <!-- Barcode Image API (Generates real barcode based on order ID) -->
+                <img id="b-barcode-img" src="" alt="Barcode">
+                <p id="b-barcode-text">ZD-000000</p>
+            </div>
+
+            <div class="r-footer">
+                Thank you for shopping with Zudio!<br>Keep this bill for return/exchange.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Fetch orders from LocalStorage (Saved during checkout)
+    const orders = JSON.parse(localStorage.getItem('zudio_orders')) || [];
+
+    // Helper: Get Current Time in 12hr format if missing
+    function getCurrentTime() {
+        const now = new Date();
+        return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderOrders() {
+        const container = document.getElementById('orders-container');
+
+        if(orders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>You haven't placed any orders yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        orders.forEach((order, index) => {
+            // Build items HTML
+            let itemsHtml = '';
+            order.items.forEach(item => {
+                itemsHtml += `
+                    <div class="order-details">
+                        <img src="${item.img}" alt="Product">
+                        <div class="item-info">
+                            <h4>${item.title}</h4>
+                            <p>Item ID: #${item.id}</p>
+                        </div>
+                        <div style="font-weight: 600; font-size: 13px;">₹${item.price}</div>
+                    </div>
+                `;
+            });
+
+            // If time is not saved, generate one for display
+            const orderTime = order.time || getCurrentTime();
+
+            html += `
+                <div class="order-card">
+                    <div class="order-top">
+                        <span>
+                            <strong style="color:white;">Order #${order.orderId}</strong><br>
+                            ${order.date} • ${orderTime}
+                        </span>
+                        <span class="order-status status-${order.status}">${order.status}</span>
+                    </div>
+                    
+                    ${itemsHtml}
+                    
+                    <div class="order-total-row">
+                        <span class="payment-status"><i class="fa-solid fa-check-circle"></i> Paid via Razorpay</span>
+                        <span style="font-weight: 800; font-size: 16px;">Total: ₹${order.total}</span>
+                    </div>
+
+                    <button class="btn-bill" onclick="openBill(${index})">
+                        <i class="fa-solid fa-file-invoice"></i> View Original Bill
+                    </button>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // --- BILL GENERATION LOGIC ---
+    function openBill(orderIndex) {
+        const order = orders[orderIndex];
+        const orderTime = order.time || getCurrentTime();
+
+        // Populate Bill Data
+        document.getElementById('b-id').innerText = order.orderId;
+        document.getElementById('b-date').innerText = order.date;
+        document.getElementById('b-time').innerText = orderTime;
+
+        // Calculate Subtotal & Tax from Total
+        // (Since total = sub + 5% tax. Sub = Total / 1.05)
+        const subtotal = Math.round(order.total / 1.05);
+        const tax = order.total - subtotal;
+
+        document.getElementById('b-sub').innerText = `₹${subtotal}`;
+        document.getElementById('b-tax').innerText = `₹${tax}`;
+        document.getElementById('b-total').innerText = `₹${order.total}`;
+
+        // Populate Items in Table
+        let itemsHtml = '';
+        order.items.forEach(item => {
+            itemsHtml += `
+                <tr>
+                    <td>
+                        <span class="r-item-name">${item.title}</span>
+                        <span class="r-item-id">SKU: ZD-${item.id}</span>
+                    </td>
+                    <td style="text-align: right; font-weight: 600;">₹${item.price}</td>
+                </tr>
+            `;
+        });
+        document.getElementById('b-items').innerHTML = itemsHtml;
+
+        // Generate Barcode using Free Barcode API (Code128 format)
+        document.getElementById('b-barcode-img').src = `https://barcode.tec-it.com/barcode.ashx?data=${order.orderId}&code=Code128&translate-esc=on`;
+        document.getElementById('b-barcode-text').innerText = order.orderId;
+
+        // Show Modal
+        const modal = document.getElementById('bill-modal');
+        modal.classList.add('show');
+    }
+
+    function closeBill() {
+        const modal = document.getElementById('bill-modal');
+        modal.classList.remove('show');
+    }
+
+    // Init App
+    renderOrders();
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Footwear - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { padding: 15px 20px; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .banner { width: 100%; height: 160px; object-fit: cover; }
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; overflow-y: auto; padding-bottom: 30px; }
+        .product-card { background: var(--card-bg); border-radius: 12px; border: 1px solid #333; overflow: hidden; position: relative; }
+        .product-card img { width: 100%; height: 180px; object-fit: cover; }
+        .info { padding: 12px; }
+        .info h3 { font-size: 13px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
+        .info p { font-size: 15px; font-weight: bold; }
+        .add-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(255,65,108,0.1); color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div id="app-container">
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <i class="fa-solid fa-arrow-left" onclick="window.history.back()" style="cursor:pointer;"></i> Footwear
+        </div>
+        <i class="fa-solid fa-bag-shopping" onclick="window.location.href='bag.html'" style="cursor:pointer;"></i>
+    </div>
+    
+    <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800" class="banner">
+    
+    <div class="product-grid">
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=400">
+            <div class="info"><h3>Classic Sneakers</h3><p>₹699</p></div>
+            <div class="add-btn" onclick="addToCart('Classic Sneakers', 699, 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=400')"><i class="fa-solid fa-plus"></i></div>
+        </div>
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400">
+            <div class="info"><h3>Women Flats</h3><p>₹399</p></div>
+            <div class="add-btn" onclick="addToCart('Women Flats', 399, 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400')"><i class="fa-solid fa-plus"></i></div>
+        </div>
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=400">
+            <div class="info"><h3>Sport Running Shoes</h3><p>₹999</p></div>
+            <div class="add-btn" onclick="addToCart('Sport Running Shoes', 999, 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=400')"><i class="fa-solid fa-plus"></i></div>
+        </div>
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400">
+            <div class="info"><h3>Men's Loafers</h3><p>₹799</p></div>
+            <div class="add-btn" onclick="addToCart(`Men's Loafers`, 799, 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400')"><i class="fa-solid fa-plus"></i></div>
+        </div>
+    </div>
+</div>
+<script>
+    function addToCart(title, price, img) {
+        let cart = JSON.parse(localStorage.getItem('zudio_cart')) || [];
+        cart.push({ id: Date.now(), title: title, price: price, mrp: price + 300, img: img });
+        localStorage.setItem('zudio_cart', JSON.stringify(cart)); alert('Added to Bag!');
+    }
+</script>
+</body>
+</html>

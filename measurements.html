@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Measurements - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f1014; --text-light: #ffffff; --text-muted: #8e8e93; --card-bg: #1c1d22; --accent: #ff416c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background: var(--bg-dark); color: var(--text-light); display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        
+        .header { padding: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); background: var(--bg-dark); z-index: 10; }
+        .header a { color: white; font-size: 18px; transition: 0.2s; }
+        .header a:active { color: var(--accent); }
+        
+        .content { flex: 1; overflow-y: auto; padding: 20px 20px 100px; }
+        .intro { color: var(--text-muted); font-size: 12px; line-height: 1.6; margin-bottom: 20px; text-align: center; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; }
+        
+        .profile-card, .form-card { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        
+        .profile-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .profile-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: white; }
+        .profile-card p { color: var(--text-muted); font-size: 11px; line-height: 1.4; }
+        .profile-actions { display: flex; gap: 10px; }
+        .profile-actions button { background: rgba(255,255,255,0.05); border: 1px solid #444; border-radius: 6px; padding: 6px 12px; color: white; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; }
+        .profile-actions button:active { background: white; color: black; }
+        .profile-actions .delete-btn { color: #ff4b2b; border-color: rgba(255,75,43,0.3); background: rgba(255,75,43,0.1); }
+        
+        .form-card h2 { font-size: 16px; margin-bottom: 20px; border-bottom: 1px dashed #333; padding-bottom: 15px; }
+        .form-card h2 i { color: var(--accent); margin-right: 8px; }
+        
+        .measurement-section { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; margin-top: 20px; }
+        .measurement-section h3 { font-size: 14px; margin-bottom: 15px; color: #d1d1d6; }
+        .measurement-section h3 i { color: var(--accent); margin-right: 8px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group label { display: block; color: var(--text-muted); font-size: 11px; font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid #333; border-radius: 8px; background: var(--bg-dark); color: white; outline: none; font-size: 13px; transition: 0.3s; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,65,108,0.2); }
+        .form-group input::placeholder { color: #555; }
+        .full-width { grid-column: span 2; }
+        
+        .btn-primary { width: 100%; padding: 15px; margin-top: 20px; border: 0; border-radius: 10px; background: var(--accent); color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary.loading { background: #444; pointer-events: none; }
+        
+        .empty-state { color: var(--text-muted); font-size: 11px; text-align: center; padding: 10px 0; }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #34c759; color: white; padding: 12px 25px; border-radius: 30px; font-size: 12px; font-weight: 600; display: none; z-index: 999; box-shadow: 0 5px 15px rgba(52,199,89,0.3); }
+        .toast.error { background: #ff4b2b; }
+    </style>
+</head>
+<body>
+<div id="app-container">
+    <div class="header"><a href="profile.html" aria-label="Back to profile"><i class="fa-solid fa-arrow-left"></i></a> My Measurements</div>
+    <main class="content">
+        <p class="intro">Save your body measurements once and use them when choosing shirts, tops, pants and other made-to-fit styles. Enter measurements in inches.</p>
+        
+        <div id="saved-profiles"></div>
+        
+        <form class="form-card" id="measurement-form">
+            <h2><i class="fa-solid fa-ruler-combined"></i><span id="form-title">Add a measurement profile</span></h2>
+            
+            <div class="form-grid">
+                <div class="form-group full-width"><label for="profile-name">Profile name</label><input id="profile-name" required placeholder="e.g. Rahul's Regular Fit" maxlength="30"></div>
+                
+                <div class="measurement-section full-width">
+                    <h3><i class="fa-solid fa-shirt"></i>Shirt / Top</h3>
+                    <div class="form-grid">
+                        <div class="form-group"><label for="shirt-chest">Chest / bust (in)</label><input id="shirt-chest" type="number" min="1" step="0.1" placeholder="e.g. 38"></div>
+                        <div class="form-group"><label for="shirt-shoulder">Shoulder (in)</label><input id="shirt-shoulder" type="number" min="1" step="0.1" placeholder="e.g. 17"></div>
+                        <div class="form-group"><label for="shirt-sleeve">Sleeve length (in)</label><input id="shirt-sleeve" type="number" min="1" step="0.1" placeholder="e.g. 24"></div>
+                        <div class="form-group"><label for="shirt-length">Shirt length (in)</label><input id="shirt-length" type="number" min="1" step="0.1" placeholder="e.g. 28"></div>
+                        <div class="form-group full-width"><label for="shirt-fit">Preferred shirt fit</label><select id="shirt-fit"><option>Regular</option><option>Slim</option><option>Relaxed</option><option>Oversized</option></select></div>
+                    </div>
+                </div>
+                
+                <div class="measurement-section full-width">
+                    <h3><i class="fa-solid fa-person-walking"></i>Pants</h3>
+                    <div class="form-grid">
+                        <div class="form-group"><label for="pants-waist">Waist (in)</label><input id="pants-waist" type="number" min="1" step="0.1" placeholder="e.g. 32"></div>
+                        <div class="form-group"><label for="pants-hip">Hip (in)</label><input id="pants-hip" type="number" min="1" step="0.1" placeholder="e.g. 40"></div>
+                        <div class="form-group"><label for="pants-inseam">Inseam (in)</label><input id="pants-inseam" type="number" min="1" step="0.1" placeholder="e.g. 30"></div>
+                        <div class="form-group"><label for="pants-rise">Rise (in)</label><input id="pants-rise" type="number" min="1" step="0.1" placeholder="e.g. 11"></div>
+                        <div class="form-group full-width"><label for="pants-fit">Preferred pants fit</label><select id="pants-fit"><option>Regular</option><option>Slim</option><option>Relaxed</option><option>Wide leg</option></select></div>
+                    </div>
+                </div>
+                
+                <div class="measurement-section full-width">
+                    <h3><i class="fa-solid fa-shoe-prints"></i>Shoes</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width"><label for="shoe-foot-length">Foot length (in)</label><input id="shoe-foot-length" type="number" min="1" step="0.1" placeholder="Measure from heel to longest toe"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn-primary" type="submit" id="submit-btn"><i class="fa-solid fa-floppy-disk"></i> Save & Sync</button>
+        </form>
+        <div class="empty-state">Measurements are stored locally and synced to Zudio cloud.</div>
+    </main>
+    <div class="toast" id="toast">Measurements saved</div>
+</div>
+
+<script>
+    // Apna web app deployment URL yahan verify/update karein
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0qK3CV9N4CUo1qJmJprMq-SMoJeub5PLb5jy4HUUZbCYX6iCGw89dFtejNXiJUYoH/exec"; 
+
+    const storageKey = 'zudio_measurements';
+    const fields = [
+        'profile-name', 'shirt-chest', 'shirt-shoulder', 'shirt-sleeve', 
+        'shirt-length', 'shirt-fit', 'pants-waist', 'pants-hip', 
+        'pants-inseam', 'pants-rise', 'pants-fit', 'shoe-foot-length'
+    ];
+    let profiles = JSON.parse(localStorage.getItem(storageKey)) || [];
+    let editingId = null;
+
+    function renderProfiles() {
+        const container = document.getElementById('saved-profiles');
+        if (!profiles.length) { container.innerHTML = ''; return; }
+        container.innerHTML = profiles.map(profile => `
+            <div class="profile-card">
+                <div>
+                    <h3>${profile['profile-name']}</h3>
+                    <p>Shirt Chest: ${profile['shirt-chest'] || '-'}in<br>Pants Waist: ${profile['pants-waist'] || '-'}in<br>Shoes: ${profile['shoe-foot-length'] || '-'}in</p>
+                </div>
+                <div class="profile-actions">
+                    <button type="button" onclick="editProfile('${profile.id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete-btn" type="button" onclick="deleteProfile('${profile.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>`).join('');
+    }
+
+    function resetForm() {
+        document.getElementById('measurement-form').reset();
+        document.getElementById('form-title').textContent = 'Add a measurement profile';
+        editingId = null;
+    }
+
+    function editProfile(id) {
+        const profile = profiles.find(item => item.id === id);
+        if (!profile) return;
+        fields.forEach(field => { document.getElementById(field).value = profile[field] || ''; });
+        document.getElementById('form-title').textContent = 'Edit measurement profile';
+        editingId = id;
+        document.getElementById('measurement-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deleteProfile(id) {
+        if(confirm("Delete this profile?")) {
+            profiles = profiles.filter(profile => profile.id !== id);
+            localStorage.setItem(storageKey, JSON.stringify(profiles));
+            if (editingId === id) resetForm();
+            renderProfiles();
+        }
+    }
+
+    function showToast(msg, isError = false) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.className = isError ? 'toast error' : 'toast';
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    document.getElementById('measurement-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        
+        const btn = document.getElementById('submit-btn');
+        btn.classList.add('loading');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
+
+        const profile = Object.fromEntries(fields.map(field => [field, document.getElementById(field).value.trim()]));
+        profile.id = editingId || String(Date.now());
+        
+        // 1. LocalStorage update
+        profiles = editingId ? profiles.map(item => item.id === editingId ? profile : item) : [...profiles, profile];
+        localStorage.setItem(storageKey, JSON.stringify(profiles));
+        renderProfiles();
+
+        // 2. Google Sheets sync via POST (text/plain preflight CORS issue ko avoid karta hai)
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(profile)
+            });
+
+            showToast("Saved & Synced to Cloud successfully!");
+            resetForm();
+        } catch (error) {
+            console.error("Sync error:", error);
+            showToast("Saved locally. Cloud sync failed.", true);
+            resetForm();
+        } finally {
+            btn.classList.remove('loading');
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save & Sync';
+        }
+    });
+
+    renderProfiles();
+</script>
+</body>
+</html>

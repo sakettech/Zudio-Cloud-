@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Value Store - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { padding: 15px 20px; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .banner { width: 100%; height: 160px; object-fit: cover; }
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; overflow-y: auto; padding-bottom: 30px; }
+        .product-card { background: var(--card-bg); border-radius: 12px; border: 1px solid #333; overflow: hidden; position: relative; }
+        .product-card img { width: 100%; height: 180px; object-fit: cover; }
+        .info { padding: 12px; }
+        .info h3 { font-size: 13px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
+        .info p { font-size: 15px; font-weight: bold; }
+        .add-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(255,65,108,0.1); color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div id="app-container">
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <i class="fa-solid fa-arrow-left" onclick="window.history.back()" style="cursor:pointer;"></i> Value Store
+        </div>
+        <i class="fa-solid fa-bag-shopping" onclick="window.location.href='bag.html'" style="cursor:pointer;"></i>
+    </div>
+    
+    <img src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=800" class="banner">
+    
+    <div class="product-grid">
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400">
+            <div class="info"><h3>Combo 3 T-shirts</h3><p>₹499</p></div>
+            <div class="add-btn" onclick="addToCart('Combo 3 T-shirts', 499, 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400')"><i class="fa-solid fa-plus"></i></div>
+        </div>
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400">
+            <div class="info"><h3>Daily Lounge Pants</h3><p>₹299</p></div>
+            <div class="add-btn" onclick="addToCart('Daily Lounge Pants', 299, 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400')"><i class="fa-solid fa-plus"></i></div>
+        </div>
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=400">
+            <div class="info"><h3>5 Pairs Socks</h3><p>₹199</p></div>
+            <div class="add-btn" onclick="addToCart('5 Pairs Socks', 199, 'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=400')"><i class="fa-solid fa-plus"></i></div>
+        </div>
+        <div class="product-card">
+            <img src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400">
+            <div class="info"><h3>Graphic Cap</h3><p>₹149</p></div>
+            <div class="add-btn" onclick="addToCart('Graphic Cap', 149, 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400')"><i class="fa-solid fa-plus"></i></div>
+        </div>
+    </div>
+</div>
+<script>
+    function addToCart(title, price, img) {
+        let cart = JSON.parse(localStorage.getItem('zudio_cart')) || [];
+        cart.push({ id: Date.now(), title: title, price: price, mrp: price + 150, img: img });
+        localStorage.setItem('zudio_cart', JSON.stringify(cart)); alert('Added to Bag!');
+    }
+</script>
+</body>
+</html>
+```<ElicitationsGroup></ElicitationsGroup>

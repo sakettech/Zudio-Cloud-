@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Categories - Zudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --bg-dark: #0f1014; --card-bg: #1c1d22; --accent: #ff416c; --text-muted: #8e8e93; --sidebar-bg: #141519; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { display: none; }
+        body { background-color: var(--bg-dark); color: white; display: flex; justify-content: center; }
+        #app-container { width: 100%; max-width: 480px; height: 100vh; position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        
+        /* HEADER */
+        .header { padding: 15px 20px; font-size: 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: var(--bg-dark); z-index: 20; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-icons { display: flex; gap: 15px; font-size: 18px; cursor: pointer; }
+
+        /* MAIN SPLIT LAYOUT */
+        .main-layout { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+        /* LEFT SIDEBAR */
+        .sidebar { width: 85px; background: var(--sidebar-bg); overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.05); }
+        .cat-item { padding: 15px 5px; display: flex; flex-direction: column; align-items: center; gap: 8px; border-left: 3px solid transparent; cursor: pointer; transition: 0.2s; }
+        .cat-item.active { border-left-color: var(--accent); background: var(--bg-dark); }
+        .cat-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #2c2c2e; padding: 2px; }
+        .cat-item.active img { border: 2px solid var(--accent); padding: 0; }
+        .cat-item span { font-size: 10px; text-align: center; color: var(--text-muted); font-weight: 500; }
+        .cat-item.active span { color: var(--accent); font-weight: 600; }
+
+        /* RIGHT CONTENT */
+        .content-area { flex: 1; overflow-y: auto; padding: 10px; background: var(--bg-dark); position: relative; }
+        
+        .sub-cats { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sub-pill { padding: 6px 15px; background: var(--card-bg); border: 1px solid #333; border-radius: 20px; font-size: 11px; white-space: nowrap; color: var(--text-muted); cursor: pointer; }
+        .sub-pill.active { background: rgba(255,65,108,0.1); color: var(--accent); border-color: var(--accent); }
+
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: 100px; /* space for floating btn */ }
+        .product-card { background: var(--card-bg); border-radius: 12px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .product-img { width: 100%; height: 160px; object-fit: cover; }
+        
+        .heart-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border: none; border-radius: 50%; width: 28px; height: 28px; color: white; z-index: 2; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; }
+        .rating-chip { position: absolute; bottom: 85px; left: 8px; background: rgba(255,255,255,0.9); color: black; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 3px; z-index: 2; }
+        .rating-chip i { color: #00b894; font-size: 8px; }
+
+        .product-info { padding: 10px; }
+        .brand { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+        .title { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 4px; }
+        .price-row { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
+        .price { font-weight: 700; font-size: 14px; }
+        .mrp { text-decoration: line-through; color: var(--text-muted); font-size: 10px; }
+        .discount { color: #ff9f00; font-size: 10px; font-weight: bold; }
+        
+        .add-btn { position: absolute; bottom: 10px; right: 10px; width: 25px; height: 25px; background: rgba(255,65,108,0.1); border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .add-btn:active { background: var(--accent); color: white; transform: scale(0.9); }
+
+        /* FIXED FLOATING SORT & FILTER BUTTON */
+        .floating-action { position: absolute; bottom: 20px; left: calc(85px + (100% - 85px) / 2); transform: translateX(-50%); background: white; color: black; display: flex; align-items: center; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 50; overflow: hidden; }
+        .action-btn { padding: 10px 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
+        .action-btn:active { background: #f0f0f0; }
+        .action-divider { width: 1px; height: 20px; background: #ccc; }
+
+        /* BOTTOM SHEETS FOR SORT, FILTER & CHECKOUT */
+        .bottom-sheet { position: absolute; bottom: 0; width: 100%; background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 25px 20px; transform: translateY(100%); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 300; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); }
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay { position: absolute; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); display: none; z-index: 299; }
+        
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .option-row { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; font-size: 14px; cursor: pointer; }
+        
+        .btn-primary { width: 100%; padding: 15px; border-radius: 10px; background: var(--accent); color: white; font-weight: 600; border: none; font-size: 15px; cursor: pointer; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-secondary { width: 100%; padding: 15px; border-radius: 10px; background: white; color: black; font-weight: 600; border: none; font-size: 15px; cursor: pointer; margin-top: 10px; }
+
+        /* TOAST SUCCESS */
+        .toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #34c759; color: white; padding: 12px 25px; border-radius: 30px; font-size: 13px; font-weight: 600; display: none; z-index: 999; box-shadow: 0 5px 15px rgba(52,199,89,0.3); }
+
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="toast" class="toast">Item Added Successfully!</div>
+    
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <i class="fa-solid fa-arrow-left" onclick="window.location.href='index.html'" style="cursor:pointer;"></i>
+            <span>Categories</span>
+        </div>
+        <div class="header-icons">
+            <i class="fa-solid fa-magnifying-glass" onclick="window.location.href='index.html'"></i>
+            <i class="fa-solid fa-bag-shopping" onclick="window.location.href='index.html'"></i>
+        </div>
+    </div>
+
+    <!-- MAIN SPLIT LAYOUT -->
+    <div class="main-layout">
+        
+        <!-- LEFT SIDEBAR -->
+        <div class="sidebar" id="sidebar">
+            <!-- Items generated by JS -->
+        </div>
+
+        <!-- RIGHT CONTENT -->
+        <div class="content-area">
+            <div class="sub-cats" id="sub-categories"></div>
+            <div class="product-grid" id="product-grid"></div>
+        </div>
+
+        <!-- FLOATING SORT/FILTER (Fixed outside content-area for consistent placement) -->
+        <div class="floating-action">
+            <div class="action-btn" onclick="openSheet('sort-sheet')"><i class="fa-solid fa-arrow-up-wide-short"></i> SORT</div>
+            <div class="action-divider"></div>
+            <div class="action-btn" onclick="openSheet('filter-sheet')"><i class="fa-solid fa-sliders"></i> FILTER</div>
+        </div>
+    </div>
+
+    <!-- OVERLAYS & BOTTOM SHEETS -->
+    <div class="overlay" id="overlay" onclick="closeAllSheets()"></div>
+
+    <!-- Sort Sheet -->
+    <div class="bottom-sheet" id="sort-sheet">
+        <div class="sheet-header"><span>Sort By</span> <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeAllSheets()"></i></div>
+        <div class="option-row" onclick="closeAllSheets()">Recommended <i class="fa-solid fa-check" style="color:var(--accent);"></i></div>
+        <div class="option-row" onclick="closeAllSheets()">Price: High to Low</div>
+        <div class="option-row" onclick="closeAllSheets()">Price: Low to High</div>
+        <div class="option-row" onclick="closeAllSheets()">New Arrivals</div>
+        <div class="option-row" onclick="closeAllSheets()">Customer Rating</div>
+    </div>
+
+    <!-- Filter Sheet -->
+    <div class="bottom-sheet" id="filter-sheet">
+        <div class="sheet-header"><span>Filters</span> <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeAllSheets()"></i></div>
+        <div class="option-row">Gender <span style="color:gray;">All</span></div>
+        <div class="option-row">Size <span style="color:gray;">Select</span></div>
+        <div class="option-row">Color <span style="color:gray;">Select</span></div>
+        <div class="option-row">Price Range <span style="color:gray;">All</span></div>
+        <button class="btn-primary" onclick="closeAllSheets()">Apply Filters</button>
+    </div>
+
+    <!-- Add to Cart Success Sheet -->
+    <div class="bottom-sheet" id="cart-success-sheet">
+        <div style="text-align:center; margin-bottom: 20px;">
+            <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #34c759; margin-bottom: 10px;"></i>
+            <h3 style="font-size:18px;">Added to Bag</h3>
+            <p style="color:gray; font-size:12px;">Item has been successfully added to your shopping bag.</p>
+        </div>
+        <button class="btn-primary" onclick="window.location.href='index.html'"><i class="fa-solid fa-bag-shopping"></i> Go to Bag / Checkout</button>
+        <button class="btn-secondary" onclick="closeAllSheets()">Continue Shopping</button>
+    </div>
+
+</div>
+
+<script>
+    // --- 1. CATEGORY DATA ---
+    const categories = [
+        { id: 'fashion', name: 'Fashion', img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=200', subs: ['Western Wear', 'Ethnic Wear', 'Winter Wear', 'Activewear'] },
+        { id: 'beauty', name: 'Beauty', img: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=200', subs: ['Makeup', 'Skincare', 'Fragrances', 'Haircare'] },
+        { id: 'homeliving', name: 'Home', img: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=200', subs: ['Decor', 'Bedding', 'Lighting', 'Bath'] },
+        { id: 'footwear', name: 'Footwear', img: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200', subs: ['Sneakers', 'Heels', 'Flats', 'Boots'] },
+        { id: 'accessories', name: 'Accessories', img: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=200', subs: ['Bags', 'Watches', 'Jewellery', 'Belts'] },
+        { id: 'value', name: 'Value', img: 'https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=200', subs: ['Under ₹299', 'Under ₹499', 'Combo Offers', 'Clearance'] }
+    ];
+
+    const categoryImages = {
+        'fashion': ['https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300', 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300', 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=300', 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=300'],
+        'beauty': ['https://images.unsplash.com/photo-1596462502278-27bf85033e5a?w=300', 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=300', 'https://images.unsplash.com/photo-1580870058826-5b6510842db1?w=300'],
+        'homeliving': ['https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=300', 'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=300', 'https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?w=300'],
+        'footwear': ['https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=300', 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=300', 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=300'],
+        'accessories': ['https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=300', 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=300', 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=300'],
+        'value': ['https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=300', 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=300', 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=300']
+    };
+
+    // --- 2. RENDER LEFT SIDEBAR ---
+    const sidebar = document.getElementById('sidebar');
+    sidebar.innerHTML = categories.map((cat, index) => `
+        <div class="cat-item ${index === 0 ? 'active' : ''}" id="tab-${cat.id}" onclick="selectCategory('${cat.id}')">
+            <img src="${cat.img}" alt="${cat.name}">
+            <span>${cat.name}</span>
+        </div>
+    `).join('');
+
+    // --- 3. DYNAMIC PRODUCT GENERATOR WITH CART INTEGRATION ---
+    function generateProducts(categoryId) {
+        let productsHTML = '';
+        const images = categoryImages[categoryId];
+        const categoryName = categories.find(c => c.id === categoryId).name;
+        
+        for(let i = 1; i <= 50; i++) {
+            const randomImg = images[i % images.length];
+            const price = 299 + (i % 6) * 100;
+            const mrp = price + 400 + (i % 3) * 100;
+            const discount = Math.round(((mrp - price) / mrp) * 100);
+            const rating = (3.5 + (i % 15) * 0.1).toFixed(1);
+            const title = `${categoryName} Item ${i}`;
+            
+            // Pass values correctly to addToCart
+            productsHTML += `
+                <div class="product-card">
+                    <button class="heart-btn" onclick="toggleHeart(this)"><i class="fa-regular fa-heart"></i></button>
+                    <div class="rating-chip"><i class="fa-solid fa-star"></i> ${rating}</div>
+                    <img src="${randomImg}" class="product-img">
+                    <div class="product-info">
+                        <div class="brand">ZUDIO</div>
+                        <div class="title">${title}</div>
+                        <div class="price-row">
+                            <span class="price">₹${price}</span>
+                            <span class="mrp">₹${mrp}</span>
+                            <span class="discount">${discount}% OFF</span>
+                        </div>
+                    </div>
+                    <div class="add-btn" onclick="addToCart('${title}', ${price}, ${mrp}, '${randomImg}')"><i class="fa-solid fa-plus"></i></div>
+                </div>
+            `;
+        }
+        return productsHTML;
+    }
+
+    function selectCategory(categoryId) {
+        document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(`tab-${categoryId}`).classList.add('active');
+
+        const catData = categories.find(c => c.id === categoryId);
+        document.getElementById('sub-categories').innerHTML = catData.subs.map((sub, idx) => `
+            <div class="sub-pill ${idx === 0 ? 'active' : ''}">${sub}</div>
+        `).join('');
+
+        document.getElementById('product-grid').innerHTML = generateProducts(categoryId);
+        document.querySelector('.content-area').scrollTop = 0;
+    }
+
+    // --- 4. CART & INTERACTION LOGIC ---
+    function toggleHeart(btn) {
+        const icon = btn.querySelector('i');
+        if(icon.classList.contains('fa-regular')) {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid');
+            icon.style.color = 'var(--accent)';
+        } else {
+            icon.classList.remove('fa-solid');
+            icon.classList.add('fa-regular');
+            icon.style.color = 'white';
+        }
+    }
+
+    // Real cart saving logic connected to index.html
+    function addToCart(title, price, mrp, img) {
+        let cart = JSON.parse(localStorage.getItem('zudio_cart')) || [];
+        cart.push({ id: Date.now(), title, price, mrp, img });
+        localStorage.setItem('zudio_cart', JSON.stringify(cart));
+        
+        // Show success popup with checkout option
+        openSheet('cart-success-sheet');
+    }
+
+    // --- BOTTOM SHEETS LOGIC ---
+    function openSheet(sheetId) {
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById(sheetId).classList.add('open');
+    }
+
+    function closeAllSheets() {
+        document.getElementById('overlay').style.display = 'none';
+        document.querySelectorAll('.bottom-sheet').forEach(sheet => sheet.classList.remove('open'));
+    }
+
+    // Init
+    selectCategory('fashion');
+
+</script>
+</body>
+</html>
