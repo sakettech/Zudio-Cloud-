@@ -104,3 +104,33 @@ To test the "Scan & Go" camera feature on a mobile device, ensure you are servin
 [ ] Implement WebSockets for 0-latency admin dashboard updates.
 
 [ ] PWA (Progressive Web App) conversion for offline accessibility.
+
+
+Team Member Name :
+Saket Janghel (Leader)
+Yash Dwivedi 
+Anshika Pundir 
+Shradha Thapa
+Priyanka Negi
+
+Built with
+
+html5
+css
+kotlin
+swift
+javascript
+localstorage
+google sheet api
+google apps script
+amazon-web-services
+webRtc
+gemini
+gemma
+
+
+Coded with
+
+Google AI Studio
+Gemini 4 Argon
+Gemini 3.8 Flash
